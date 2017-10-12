@@ -46,7 +46,7 @@ switch protocol
         interSweepInterval = 1; % in s
         numSweeps = 1;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
-        len_on = 5; % so that the maximum len will be ~ 1 mm above platform
+        len_on = 8; % so that the maximum len will be at least 1 mm above platform
         intensities = [0.1, 0.2, 0.4, 0.8];
         stepFrequency = 0.5;
         squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;

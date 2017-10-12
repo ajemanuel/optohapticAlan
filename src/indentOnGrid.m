@@ -4,13 +4,13 @@ function [  ] = indentOnGrid( )
 
 %% Set Parameters
 
-min_x = 4; % mm
-min_y = 4; % mm
-max_x = 14; % mm
-max_y = 14; % mm
+min_x = 7; % mm
+min_y = 7; % mm
+max_x = 13; % mm
+max_y = 13; % mm
 grid_spacing = 2; %mm
-move_velocity = 50; %mm/s
-num_repetitions = 2; % # of times repeating entire grid
+move_velocity = 4; %mm/s
+num_repetitions = 3; % # of times repeating entire grid
 grid_x = repmat([min_x:grid_spacing:max_x],(max_y-min_y)/grid_spacing+1,1);
 
 grid_y = repmat([min_y:grid_spacing:max_y]',1,(max_x-min_x)/grid_spacing+1);
@@ -21,7 +21,7 @@ rng(20170922) % set random seed for reproducibility
 
 grid_positions_rand = grid_positions(randperm(size(grid_positions,1)),:);
 
-grid_positions_actual = zeros(size(grid_positions_rand));
+grid_positions_actual = zeros([size(grid_positions_rand),num_repetitions]);
 
 %% Load PI MATLAB Driver GCS2
 %  (if not already loaded) should be already within saved path
@@ -123,7 +123,8 @@ end
 % determine the allowed travel range of the stage
 
 
-
+for repetition = 1:num_repetitions
+    fprintf('on repetition %d of %d\n',repetition,num_repetitions)
 for gridLoc = 1:size(grid_positions_rand)
     PIdevice.MOV ( availableAxes{1}, grid_positions_rand(gridLoc,1));
     disp ( 'X axis stage is moving')
@@ -143,12 +144,13 @@ for gridLoc = 1:size(grid_positions_rand)
     end
     fprintf('\n');
     pause(1) %% rest of code will go here
-    grid_positions_actual(gridLoc,1) = PIdevice.qPOS(availableAxes{1});
-    grid_positions_actual(gridLoc,2) = PIdevice.qPOS(availableAxes{2});
+    grid_positions_actual(gridLoc,1, repetition) = PIdevice.qPOS(availableAxes{1});
+    grid_positions_actual(gridLoc,2, repetition) = PIdevice.qPOS(availableAxes{2});
     
-    disp('Stimulating')
+    fprintf('Stimulating site %d of %d\n',gridLoc, size(grid_positions_rand))
     acquireIntanIndenter('forceIncreasingSteps')
     
+end
 end
 
 %% If you want to close the connection
@@ -166,6 +168,7 @@ s1.min_x = min_x;
 s1.max_x = max_x;
 s1.min_y = min_y;
 s1.max_y = max_y;
+s1.num_repetitions = num_repetitions;
 s1.grid_spacing = grid_spacing;
 s1.grid_positions = grid_positions;
 s1.grid_positions_rand = grid_positions_rand;
