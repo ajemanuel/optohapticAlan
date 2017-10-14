@@ -6,11 +6,11 @@ function [  ] = indentOnGrid( )
 
 min_x = 7; % mm
 min_y = 7; % mm
-max_x = 13; % mm
-max_y = 13; % mm
-grid_spacing = 2; %mm
-move_velocity = 4; %mm/s
-num_repetitions = 3; % # of times repeating entire grid
+max_x = 11; % mm
+max_y = 11; % mm
+grid_spacing = 0.5; %mm
+move_velocity = 20; %mm/s
+num_repetitions = 2; % # of times repeating entire grid
 grid_x = repmat([min_x:grid_spacing:max_x],(max_y-min_y)/grid_spacing+1,1);
 
 grid_y = repmat([min_y:grid_spacing:max_y]',1,(max_x-min_x)/grid_spacing+1);
