@@ -13,10 +13,10 @@ switch protocol
         numSweeps = 1;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning o stimulus
         len_on = 8; % so that the maximum len will be above platform
-        stepIntensityMilliNewtons = 20; % in mN
+        stepIntensityMilliNewtons = 10; % in mN
         forceConversion = 50; % mN/V
         stepIntensity = stepIntensityMilliNewtons / forceConversion; % in V
-        stepFrequency = 0.5; % 1 s steps
+        stepFrequency = 1; % 1 s steps
         squareWaveT = 0:1/Fs:(.9*sweepDuration)-1/Fs;
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2*stepIntensity;
         squareWaveY = squareWaveY';
@@ -28,12 +28,12 @@ switch protocol
         interSweepSamples = interSweepInterval * Fs;
         trigger = zeros(sweepDurationinSamples,1);
         trigger(2:1:end-1) = 1; % trigger determines length of intan recording, which will have buffer at beg and end
-        length = ones(sweepDurationinSamples,1) * len;
+        length = ones(sweepDurationinSamples,1) * len_on;
         blankTwentieth = zeros(sweepDurationinSamples*.05,1);
         force = [blankTwentieth; squareWaveY; blankTwentieth];
         
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
-        fullLength = repmat([length; ones(interSweepSamples,1)*len],numSweeps,1);
+        fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
         
         %ramping length up and down for first and last second in stimulus
         fullLength(1:Fs) = len_off:(len_on-len_off)/2e4:len_on-1/2e4;

@@ -4,13 +4,13 @@ function [  ] = indentOnGrid( )
 
 %% Set Parameters
 
-min_x = 7; % mm
-min_y = 7; % mm
-max_x = 11; % mm
-max_y = 11; % mm
+min_x = 8; % mm
+min_y = 8; % mm
+max_x = 10; % mm
+max_y = 10; % mm
 grid_spacing = 0.5; %mm
 move_velocity = 20; %mm/s
-num_repetitions = 2; % # of times repeating entire grid
+num_repetitions = 3; % # of times repeating entire grid
 grid_x = repmat([min_x:grid_spacing:max_x],(max_y-min_y)/grid_spacing+1,1);
 
 grid_y = repmat([min_y:grid_spacing:max_y]',1,(max_x-min_x)/grid_spacing+1);
@@ -120,8 +120,6 @@ end
 
 %% Move Stages
 
-% determine the allowed travel range of the stage
-
 
 for repetition = 1:num_repetitions
     fprintf('on repetition %d of %d\n',repetition,num_repetitions)
@@ -148,7 +146,7 @@ for gridLoc = 1:size(grid_positions_rand)
     grid_positions_actual(gridLoc,2, repetition) = PIdevice.qPOS(availableAxes{2});
     
     fprintf('Stimulating site %d of %d\n',gridLoc, size(grid_positions_rand))
-    acquireIntanIndenter('forceIncreasingSteps')
+    acquireIntanIndenter('forceSteps')
     
 end
 end
