@@ -56,6 +56,12 @@ switch config
         dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
         dch.Name = 'Trigger';
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
+    case 'indenterCamera'
+        ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
+        dch(1).Name = 'Trigger';
+        dch(2).Name = 'CameraTrigger';
+        addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
     otherwise
         error('config not correct')
 end

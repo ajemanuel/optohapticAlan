@@ -146,7 +146,7 @@ for gridLoc = 1:size(grid_positions_rand)
     grid_positions_actual(gridLoc,2, repetition) = PIdevice.qPOS(availableAxes{2});
     
     fprintf('Stimulating site %d of %d\n',gridLoc, size(grid_positions_rand))
-    acquireIntanIndenter('forceSteps')
+    acquireIntanIndenterCamera('forceSteps')
     
 end
 end
