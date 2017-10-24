@@ -2,15 +2,15 @@ function acquireIntan()
 
 % Init DAQ
 Fs = 20000;
-s = daqSetup(Fs);
+s = daqSetup(Fs, 'laser');
 
 % Construct stimulus
 stimulus = 'acquireIntan';
 edgeLength = 4000; %, 2236, 2000, 1789, 1600, 1431,1280, 1145, 1024, 916, 820, 733, 656, 587, 524, 469, 420, 376, 336, 300];        
 offsetX = 0;
 offsetY = 0;
-numStim = 3000;
-maxISI = .02;
+numStim = 100;
+maxISI = .2;
 dwellTime = .005;
 
 

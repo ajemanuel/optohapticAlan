@@ -1,29 +1,31 @@
 %% General framework for delivering a stimulus %%
 
 % Init DAQ
-Fs = 80000;
+Fs = 20000;
 s = daqSetup(Fs,'laser');
 
 
 % Construct stimulus
 stimulus = 'randSquareWithOffset';
-edgeLength = 2000; %for glabrous skin 2500, 2236, 2000, 1789, 1600, 1431,1280, 1145, 1024, 916, 820, 733, 656, 587, 524, 469, 420, 376, 336, 300        
-offsetX = -25000; % [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
-offsetY = 8600;
-numStim = 200;
+edgeLength = 2000; % in microns      
+offsetX = 0; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
+offsetY = 20000; % in microns
+numStim = 200; 
 dwellTime = 0.0001;  %.001 singes FST ruler
 ISI = .05;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
 
 rng(.08041961) % seed random number generator for reproducibility
 [x1,y1,lz1] = randSquareWithOffset(edgeLength, offsetX, offsetY, numStim, dwellTime, ISI, Fs);
+trigger = zeros(1,length(x1));
+trigger(2:end-1) = 1;
 %lz2(1:round(Fs/acqFPS):end) = 9; %possible to trigger with a single sample?
 
 
 
 
- queueOutputData(s, horzcat(x1, y1, lz1)) %, lz2))
+ s.queueOutputData(horzcat(x1, y1, trigger', lz1))
  pause(2);
- s.startForeground();
+ data = s.startForeground();
 
 
 
@@ -38,4 +40,13 @@ s1.offsetY = offsetY;
 s1.numStim = numStim;
 s1.dwellTime = dwellTime;
 s1.ISI = ISI;
-%save(strcat(stimulus,'_',datestr(now, 'yymmdd HHMM SS'),'.mat'), '-struct', 's1');
+s1.x = x1;
+s1.y = y1;
+s1.trigger = trigger';
+s1.Fs = Fs;
+s1.data = data;
+path = 'E:\DATA\';
+fullpath = strcat(path, stimulus, '_', datestr(now, 'yymmdd HHMM SS'), '.mat');
+fprintf('saved as %s \n', fullpath)
+save(fullpath, '-struct', 's1');
+
