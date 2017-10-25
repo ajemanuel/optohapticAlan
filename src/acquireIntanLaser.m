@@ -8,10 +8,10 @@ function acquireIntanLaser(protocol)
     switch protocol
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
-            edgeLength = 6000; % in microns      
+            edgeLength = 4000; % in microns      
             offsetX = 0; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
             offsetY = 22000; % in microns
-            numStim = 1000; 
+            numStim = 5000; 
             dwellTime = 0.0005;  %.001 singes FST ruler
             ISI = .1;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
 
@@ -20,10 +20,27 @@ function acquireIntanLaser(protocol)
             trigger = zeros(1,length(x1));
             trigger(2:end-2) = 1;
             %lz2(1:round(Fs/acqFPS):end) = 9; %possible to trigger with a single sample?
+        case 'squareGridWithOffset'
+            stimulus = 'squareGridWithOffset';
+            edgeLength = 4000;
+            offsetX = 0;
+            offsetY = 22000;
+            spacing = 100;
+            numRepetitions = 10;
+            dwellTime = 0.0005;
+            ISI = 0.05;
+            
+            [x1,y1,lz1] = squareGridWithOffset(edgeLength, offsetX, offsetY, spacing, numRepetitions, dwellTime, ISI, Fs);
+            trigger = zeros(1,length(x1));
+            trigger(2:end-2) = 1;
+            
     end
 
 
-
+    size(x1)
+    size(y1)
+    size(trigger')
+    size(lz1)
      s.queueOutputData(horzcat(x1, y1, trigger', lz1))
      pause(2);
      data = s.startForeground();
@@ -38,7 +55,7 @@ function acquireIntanLaser(protocol)
     s1.edgeLength = edgeLength;
     s1.offsetX = offsetX;
     s1.offsetY = offsetY;
-    s1.numStim = numStim;
+    %s1.numStim = numStim;
     s1.dwellTime = dwellTime;
     s1.ISI = ISI;
     s1.x = x1;
