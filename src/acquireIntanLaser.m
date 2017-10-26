@@ -1,6 +1,6 @@
 function acquireIntanLaser(protocol)
     % Init DAQ
-    Fs = 80000;
+    Fs = 20000;
     s = daqSetup(Fs,'laser');
 
     
@@ -8,12 +8,12 @@ function acquireIntanLaser(protocol)
     switch protocol
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
-            edgeLength = 4000; % in microns      
-            offsetX = 0; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
-            offsetY = 22000; % in microns
-            numStim = 5000; 
-            dwellTime = 0.0005;  %.001 singes FST ruler
-            ISI = .1;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
+            edgeLength = 6000; % in microns      
+            offsetX = -15000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
+            offsetY = -20000; % in microns
+            numStim = 20000; 
+            dwellTime = 0.0002;  %.001 singes FST ruler
+            ISI = .05;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
 
             rng(.08041961) % seed random number generator for reproducibility
             [x1,y1,lz1] = randSquareWithOffset(edgeLength, offsetX, offsetY, numStim, dwellTime, ISI, Fs);
@@ -23,16 +23,30 @@ function acquireIntanLaser(protocol)
         case 'squareGridWithOffset'
             stimulus = 'squareGridWithOffset';
             edgeLength = 4000;
-            offsetX = 0;
-            offsetY = 22000;
+            offsetX = -15000;
+            offsetY = -20000;
             spacing = 100;
             numRepetitions = 10;
-            dwellTime = 0.0005;
-            ISI = 0.05;
+            dwellTime = 0.0001;
+            ISI = 0.1;
             
             [x1,y1,lz1] = squareGridWithOffset(edgeLength, offsetX, offsetY, spacing, numRepetitions, dwellTime, ISI, Fs);
             trigger = zeros(1,length(x1));
             trigger(2:end-2) = 1;
+        case 'rastGridWithOffset'
+            stimulus = 'rastGridWithOffset';
+            edgeLength = 6000;
+            offsetX = -15000;
+            offsetY = -20000;
+            spacing = 100;
+            numRepetitions = 50;
+            dwellTime = 0.00001;
+            ISI = 0.001;
+            direction = 'left';
+            [x1,y1,lz1] = rastGridWithOffset(edgeLength, offsetX, offsetY, spacing, numRepetitions, dwellTime, ISI, Fs, direction);
+            trigger = zeros(1,length(x1));
+            trigger(2:end-2) = 1;
+            s1.direction = direction;
             
     end
 
