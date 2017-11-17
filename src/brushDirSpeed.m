@@ -1,27 +1,22 @@
-function [  ] = indentOnGrid( )
+function [  ] = brushDirSpeed( )
 %Apply indenter steps to points on a grid.
 %   Points  are ordered randomly.
 
 %% Set Parameters
 
-min_x = 8; % mm
-min_y = 8; % mm
-max_x = 10; % mm
-max_y = 10; % mm
-grid_spacing = 0.5; %mm
-move_velocity = 20; %mm/s
-num_repetitions = 2; % # of times repeating entire grid
-grid_x = repmat([min_x:grid_spacing:max_x],(max_y-min_y)/grid_spacing+1,1);
+min_x = 0; % mm
+min_y = 0; % mm
+max_x = 18; % mm
+max_y = 18; % mm
+spacing = 2; % mm
+velocities = [16, 32, 64]; %mm/s
+num_repetitions = 1; % # of times repeating entire grid
+num_positions = length(min_x:spacing:max_x);
+starts = horzcat([min_x:spacing:max_x]',repmat(min_y,num_positions,1));
+starts = vertcat(starts,horzcat(repmat(min_x,num_positions,1),[min_y:spacing:max_y]'));
+ends = horzcat([min_x:spacing:max_x]',repmat(max_y,num_positions,1));
+ends = vertcat(ends,horzcat(repmat(max_x,num_positions,1),[min_y:spacing:max_y]'));
 
-grid_y = repmat([min_y:grid_spacing:max_y]',1,(max_x-min_x)/grid_spacing+1);
-
-grid_positions = [grid_x(:) grid_y(:)];
-
-rng(20170922) % set random seed for reproducibility
-
-grid_positions_rand = grid_positions(randperm(size(grid_positions,1)),:);
-
-grid_positions_actual = zeros([size(grid_positions_rand),num_repetitions]);
 
 %% Load PI MATLAB Driver GCS2
 %  (if not already loaded) should be already within saved path
@@ -104,7 +99,7 @@ for axes = 1:size(availableAxes,2)
     switchOn    = 1;
     % switchOff   = 0;
     PIdevice.SVO ( axis, switchOn );
-    PIdevice.VEL ( axis, move_velocity); % set speed of axes
+    PIdevice.VEL ( axis, velocities(1)); % set speed of axes
     % reference axis
     PIdevice.FRF ( axis );  % find reference
     bReferencing = 1;                           
@@ -123,8 +118,17 @@ end
 
 for repetition = 1:num_repetitions
     fprintf('on repetition %d of %d\n',repetition,num_repetitions)
-for gridLoc = 1:size(grid_positions_rand)
-    PIdevice.MOV ( availableAxes{1}, grid_positions_rand(gridLoc,1));
+for velocity = 1:size(velocities,2)
+    %% set velocity
+    for axes = 1:size(availableAxes,2)
+        axis = availableAxes{axes};
+        PIdevice.VEL ( axis, velocities(velocity)); % set speed of axes    
+    end
+    fprintf('Devices  moving at %d mm/s\n',velocities(velocity))
+for position = 1:size(starts)
+
+    %% move to start position
+    PIdevice.MOV ( availableAxes{1}, starts(position,1));
     disp ( 'X axis stage is moving')
     % wait for motion to stop
     while(0 ~= PIdevice.IsMoving ( availableAxes{1} ) )
@@ -132,8 +136,7 @@ for gridLoc = 1:size(grid_positions_rand)
         fprintf('.');
     end
     fprintf('\n');
-    
-    PIdevice.MOV ( availableAxes{2}, grid_positions_rand(gridLoc,2));
+    PIdevice.MOV ( availableAxes{2}, starts(position,2));
     disp ( 'Y axis stage is moving')
     % wait for motion to stop
     while(0 ~= PIdevice.IsMoving ( availableAxes{2} ) )
@@ -141,13 +144,30 @@ for gridLoc = 1:size(grid_positions_rand)
         fprintf('.');
     end
     fprintf('\n');
-    pause(1) %% rest of code will go here
-    grid_positions_actual(gridLoc,1, repetition) = PIdevice.qPOS(availableAxes{1});
-    grid_positions_actual(gridLoc,2, repetition) = PIdevice.qPOS(availableAxes{2});
     
-    fprintf('Stimulating site %d of %d\n',gridLoc, size(grid_positions_rand))
-    acquireIntanIndenterCamera('forceSteps')
+    pause (1)
+    %% move to end position
     
+    PIdevice.MOV ( availableAxes{1}, ends(position,1));
+    disp ( 'X axis stage is moving')
+    % wait for motion to stop
+    while(0 ~= PIdevice.IsMoving ( availableAxes{1} ) )
+        pause ( 0.05 );
+        fprintf('.');
+    end
+    fprintf('\n');
+    PIdevice.MOV ( availableAxes{2}, ends(position,2));
+    disp ( 'Y axis stage is moving')
+    % wait for motion to stop
+    while(0 ~= PIdevice.IsMoving ( availableAxes{2} ) )
+        pause ( 0.05 );
+        fprintf('.');
+    end
+    fprintf('\n');
+    
+    pause(1)
+       
+end
 end
 end
 
@@ -160,22 +180,22 @@ clear Controller;
 clear PIdevice;
 
 
-%% Save structure with stimulus information
-s1.stimulus = 'GridIndent';
-s1.min_x = min_x;
-s1.max_x = max_x;
-s1.min_y = min_y;
-s1.max_y = max_y;
-s1.num_repetitions = num_repetitions;
-s1.grid_spacing = grid_spacing;
-s1.grid_positions = grid_positions;
-s1.grid_positions_rand = grid_positions_rand;
-s1.grid_positions_actual = grid_positions_actual;
-
-path = 'E:\DATA\';
-fullpath = strcat(path,s1.stimulus,'_', datestr(now,'yymmdd HHMM SS'), '.mat');
-fprintf('saved as %s\n', fullpath)
-save(fullpath, '-struct', 's1');
+% %% Save structure with stimulus information
+% s1.stimulus = 'GridIndent';
+% s1.min_x = min_x;
+% s1.max_x = max_x;
+% s1.min_y = min_y;
+% s1.max_y = max_y;
+% s1.num_repetitions = num_repetitions;
+% s1.grid_spacing = grid_spacing;
+% s1.grid_positions = grid_positions;
+% s1.grid_positions_rand = grid_positions_rand;
+% s1.grid_positions_actual = grid_positions_actual;
+% 
+% path = 'E:\DATA\';
+% fullpath = strcat(path,s1.stimulus,'_', datestr(now,'yymmdd HHMM SS'), '.mat');
+% fprintf('saved as %s\n', fullpath)
+% save(fullpath, '-struct', 's1');
 
 %positonReached = PIdevice.qPOS(axis)
 end
