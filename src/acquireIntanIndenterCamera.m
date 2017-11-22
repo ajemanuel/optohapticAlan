@@ -68,16 +68,25 @@ switch protocol
     case 'forceIncreasingSteps'
         %% parameters
         stimulus = 'IndenterForceSteps';
-        sweepDuration = 10; % in s
+        sweepDuration = 20; % in s
+        sweepDurationinSamples = Fs * sweepDuration;
+        
         interSweepInterval = 1; % in s
-        numSweeps = 1;
+        numSweeps = 20;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
-        len_on = 8; % so that the maximum len will be at least 1 mm above platform
-        intensities = [0.1, 0.2, 0.4, 0.8];
-        stepFrequency = 0.5;
+        len_on = 3; % so that the maximum len will be at least 1 mm above platform
+        intensities = [0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 2.0,0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 2.0];
+        stepFrequency = 1;
         squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2;
         squareWaveY = squareWaveY';
+        
+        % build camera trigger
+        cameraTrigger = zeros(sweepDurationinSamples,1);
+        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
+        for j = 10:maxCameraTriggers-10
+            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        end
         
         for i = 1:size(intensities,2)
             if i == 1
@@ -99,6 +108,8 @@ switch protocol
         blankTenth = zeros(sweepDurationinSamples*.1,1);
         force = [blankTenth; squareWaveY; blankTenth];
         
+        
+        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);        
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
         
@@ -110,7 +121,7 @@ switch protocol
         
         %% Queue data
         
-        s.queueOutputData(horzcat(fullTrigger, fullLength, fullForce))
+        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
         
         [data, time] = s.startForeground();
         
@@ -182,13 +193,20 @@ switch protocol
     case 'forceSine'
         %% parameters
         stimulus = 'IndenterSine';
-        sweepDuration = 20; % in s
+        sweepDuration = 10; % in s
+        sweepDurationinSamples = sweepDuration * Fs;
         interSweepInterval = 2; % in s
-        numSweeps = 5;
+        numSweeps = 10;
         len = 4; % so that the maximum len will be ~ 1 mm above platform
         sineAmplitude = 0.2; % in V
-        sineFrequency = 40; % in Hz
+        sineFrequency = 20; % in Hz
         
+        % build camera trigger
+        cameraTrigger = zeros(sweepDurationinSamples,1);
+        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
+        for j = 10:maxCameraTriggers-10
+            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        end        
         
         %% Build Stimuli
         sweepDurationinSamples = Fs * sweepDuration;
@@ -205,6 +223,7 @@ switch protocol
         length = ones(sweepDurationinSamples,1) * len;
         force = [blankQuarter; sineWaveY; blankQuarter];
         
+        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullLength = repmat([length; ones(interSweepSamples,1)*len],numSweeps,1);
         fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
@@ -212,7 +231,7 @@ switch protocol
                 
         %% Queue data
         
-        s.queueOutputData(horzcat(fullTrigger, fullLength, fullForce))
+        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
         
         [data, time] = s.startForeground();
         
