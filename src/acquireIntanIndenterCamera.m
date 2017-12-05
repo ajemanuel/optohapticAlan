@@ -3,7 +3,7 @@ function acquireIntanIndenterCamera(protocol)
 % Init DAQ
 Fs = 20000;
 s = daqSetup(Fs, 'indenterCamera');
-cameraTriggerRate = 10; % in Hz
+cameraTriggerRate = 30; % in Hz
 cameraTriggerSamples = Fs/cameraTriggerRate;
 
 switch protocol
@@ -71,11 +71,11 @@ switch protocol
         sweepDuration = 20; % in s
         sweepDurationinSamples = Fs * sweepDuration;
         
-        interSweepInterval = 1; % in s
+        interSweepInterval = 3; % in s
         numSweeps = 20;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
-        len_on = 3; % so that the maximum len will be at least 1 mm above platform
-        intensities = [0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 2.0,0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 2.0];
+        len_on = 6; % so that the maximum len will be at least 1 mm above platform
+        intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
         stepFrequency = 1;
         squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2;
