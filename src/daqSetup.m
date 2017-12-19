@@ -9,21 +9,43 @@ function [ s, ch, dch ] = daqSetup( Fs , config)
 
 Device = 'Dev3';
 
+% analog outputs for Aurora stimulator
 AOlength = 0;
 AOforce = 1;
+
+% analog outputs for scan mirrors
 AOxScan = 2;
 AOyScan = 3;
 
+% analog inputs for Aurora stimulator
 AIlength = 0;
 AIforce = 1;
+
+% analog input for brush
 AIbrush = 3;
+
+% monitoring trigger signal (should move this to a DI)
 AItrigger = 4;
 
+% trigger for LED used for optotagging
 DOopto = 'port0/line11';
-
+% trigger for recording
 DOtrigger = 'port0/line8';
+% trigger for camera
 DOcameraTrigger = 'port0/line10';
+% trigger for TTL laser
 DOlaser = 'port0/line9';
+
+% PI stage outputs (nidaq --> C-867 controller)
+DOphysikInstrumente1 = 'port0/line5';
+DOphysikInstrumente2 = 'port0/line6';
+DOphysikInstrumente4 = 'port0/line7';
+
+% PI stage inputs (C-867 --> nidaq)
+DIphysikInstrumente3 = 'port0/line18';
+DIphysikInstrumente4 = 'port0/line19';
+
+
 
 %% Initiating DAQ and Assigning Channels
 

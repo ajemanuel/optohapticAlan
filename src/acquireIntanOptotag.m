@@ -14,11 +14,11 @@ interSweepInterval = 2; % in s
 numSweeps = 20;
 
 
-lightDur = 4; % in ms
+lightDur = 10; % in ms
 lightDur_s = lightDur/1000; % convert to seconds
 lightDur_samples = lightDur_s * Fs; % convert to samples
 numFrequencies = 5;
-optoFrequencies = [5, 10, 20, 40, 80];
+optoFrequencies = [2, 5, 10, 20, 40];
 squareWaveT = 0:1/Fs:(1/numFrequencies*sweepDuration) - 1/Fs;
 
 for i = 1:length(optoFrequencies)

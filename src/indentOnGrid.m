@@ -4,8 +4,8 @@ function [  ] = indentOnGrid( )
 
 %% Set Parameters
 
-min_x = 8; % mm
-min_y = 8; % mm
+min_x = 7; % mm
+min_y = 7; % mm
 max_x = 11; % mm
 max_y = 11; % mm
 grid_spacing = 1; %mm
@@ -146,8 +146,7 @@ for gridLoc = 1:size(grid_positions_rand)
     grid_positions_actual(gridLoc,2, repetition) = PIdevice.qPOS(availableAxes{2});
     
     fprintf('Stimulating site %d of %d\n',gridLoc, size(grid_positions_rand))
-    fprintf('X: %1f, Y: %1f',grid_positions_rand(gridLoc,1),grid_positions_rand(gridLoc,2))
-    fprintf('here')
+    fprintf('X: %.2f, Y: %.2f\n',grid_positions_rand(gridLoc,1),grid_positions_rand(gridLoc,2))
     acquireIntanIndenterCamera('forceSteps')
     
 end
