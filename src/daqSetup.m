@@ -7,7 +7,7 @@ function [ s, ch, dch ] = daqSetup( Fs , config)
 
 %% DAQ and Channel Identities for Current Setup (20170629)
 
-Device = 'Dev3';
+Device = 'Dev2';
 
 % analog outputs for Aurora stimulator
 AOlength = 0;
@@ -30,20 +30,20 @@ AItrigger = 4;
 % trigger for LED used for optotagging
 DOopto = 'port0/line11';
 % trigger for recording
-DOtrigger = 'port0/line8';
+DOtrigger = 'port0/line0';
 % trigger for camera
-DOcameraTrigger = 'port0/line10';
+DOcameraTrigger = 'port0/line6'; % connected to PFI1
 % trigger for TTL laser
-DOlaser = 'port0/line9';
+DOlaser = 'port0/line1';
 
 % PI stage outputs (nidaq --> C-867 controller)
-DOphysikInstrumente1 = 'port0/line5';
-DOphysikInstrumente2 = 'port0/line6';
-DOphysikInstrumente4 = 'port0/line7';
+DOphysikInstrumente1 = 'port0/line2';
+DOphysikInstrumente2 = 'port0/line3';
+DOphysikInstrumente4 = 'port0/line4';
 
 % PI stage inputs (C-867 --> nidaq)
-DIphysikInstrumente3 = 'port0/line18';
-DIphysikInstrumente4 = 'port0/line19';
+DIphysikInstrumente3 = 'port0/line5';
+%DIphysikInstrumente4 = 'port0/line6';
 
 
 
@@ -79,11 +79,15 @@ switch config
         dch.Name = 'Trigger';
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
     case 'indenterCamera'
+        fprintf('Adding analog input channels\n')
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        fprintf('Adding digital output channels\n')
         dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
         dch(1).Name = 'Trigger';
         dch(2).Name = 'CameraTrigger';
+        fprintf('Adding analog output channels\n')
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
+        
     otherwise
         error('config not correct')
 end

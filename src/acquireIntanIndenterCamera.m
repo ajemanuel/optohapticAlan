@@ -3,7 +3,7 @@ function acquireIntanIndenterCamera(protocol)
 % Init DAQ
 Fs = 20000;
 s = daqSetup(Fs, 'indenterCamera');
-cameraTriggerRate = 30; % in Hz
+cameraTriggerRate = 15; % in Hz
 cameraTriggerSamples = Fs/cameraTriggerRate;
 
 switch protocol
