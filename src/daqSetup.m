@@ -28,7 +28,7 @@ AIbrush = 3;
 AItrigger = 4;
 
 % trigger for LED used for optotagging
-DOopto = 'port0/line11';
+DOopto = 'port0/line1';
 % trigger for recording
 DOtrigger = 'port0/line0';
 % trigger for camera
