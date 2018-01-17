@@ -13,9 +13,12 @@ Device = 'Dev2';
 AOlength = 0;
 AOforce = 1;
 
+
+OldDevice = 'Dev3'; % this controls the device with the scan mirrors/laser
 % analog outputs for scan mirrors
 AOxScan = 2;
 AOyScan = 3;
+
 
 % analog inputs for Aurora stimulator
 AIlength = 0;
@@ -63,9 +66,10 @@ switch config
         dch(1).Name = 'trigger';
         dch(2).Name = 'opto';                
     case {'laser'}
-        addAnalogOutputChannel(s,Device,[AOxScan, AOyScan],'Voltage');
-        ch = addAnalogInputChannel(s,Device,[AItrigger],'Voltage');
-        dch = addDigitalChannel(s,Device,{DOtrigger, DOlaser},'OutputOnly');
+        addAnalogOutputChannel(s,OldDevice,[AOxScan, AOyScan],'Voltage');
+        %ch = addAnalogInputChannel(s,OldDevice,[AItrigger],'Voltage'); %
+        %not currently monitoring
+        dch = addDigitalChannel(s,OldDevice,{DOtrigger, DOlaser},'OutputOnly');
         dch(1).Name = 'trigger';
         dch(2).Name = 'Laser';
     case 'brushCamera'
