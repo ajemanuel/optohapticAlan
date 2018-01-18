@@ -4,10 +4,10 @@ function [  ] = indentOnGrid( )
 
 %% Set Parameters
 
-min_x = 7; % mm
-min_y = 7; % mm
-max_x = 11; % mm
-max_y = 11; % mm
+min_x = 9; % mm
+min_y = 4; % mm
+max_x = 13; % mm
+max_y = 8; % mm
 grid_spacing = 1; %mm
 move_velocity = 20; %mm/s
 num_repetitions = 2; % # of times repeating entire grid
@@ -145,6 +145,7 @@ for gridLoc = 1:size(grid_positions_rand)
     grid_positions_actual(gridLoc,1, repetition) = PIdevice.qPOS(availableAxes{1});
     grid_positions_actual(gridLoc,2, repetition) = PIdevice.qPOS(availableAxes{2});
     
+    fprintf('Repetition %d of %d\n',repetition,num_repetitions)
     fprintf('Stimulating site %d of %d\n',gridLoc, size(grid_positions_rand))
     fprintf('X: %.2f, Y: %.2f\n',grid_positions_rand(gridLoc,1),grid_positions_rand(gridLoc,2))
     acquireIntanIndenterCamera('forceSteps')
