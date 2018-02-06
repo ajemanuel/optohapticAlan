@@ -75,21 +75,27 @@ switch config
     case 'brushCamera'
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIbrush],'Voltage');
         dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
-        dch(1).Name = 'Trigger';
+        dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
     case 'indenter'
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
         dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
-        dch.Name = 'Trigger';
+        dch.Name = 'trigger';
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
     case 'indenterCamera'
         fprintf('Adding analog input channels\n')
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
         fprintf('Adding digital output channels\n')
         dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
-        dch(1).Name = 'Trigger';
+        dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
         fprintf('Adding analog output channels\n')
+        addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
+    case 'indenterOpto'
+        ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        dch = addDigitalChannel(s,Device,{DOtrigger, DOopto},'OutputOnly');
+        dch(1).Name = 'trigger';
+        dch(2).Name = 'opto';
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
         
     otherwise

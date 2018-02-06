@@ -1,15 +1,19 @@
-function acquireIntanIndenterCamera(protocol)
+function acquireIntanIndenterOpto(protocol, optoOn)
 
 % Init DAQ
 Fs = 20000;
-s = daqSetup(Fs, 'indenterCamera');
-cameraTriggerRate = 15; % in Hz
-cameraTriggerSamples = Fs/cameraTriggerRate;
-
+s = daqSetup(Fs, 'indenterOpto');
+optoTriggerRate = 15; % in Hz
+optoTriggerSamples = Fs/optoTriggerRate;
+optoDuration = 2; % in ms
+if nargin < 2
+    optoOn = true;
+end
+    
 switch protocol
     case 'forceSteps'  %% this protocol gives a train of force steps for the specified duration
         %% parameters
-        stimulus = 'IndenterForceSteps';
+        stimulus = 'IndenterOptoForceSteps';
         sweepDuration = 20; % in s
         interSweepInterval = 1; % in s
         
@@ -37,10 +41,12 @@ switch protocol
         trigger = zeros(sweepDurationinSamples,1);
         trigger(2:1:end-1) = 1; % trigger determines length of intan recording, which will have buffer at beg and end
         % build camera trigger
-        cameraTrigger = zeros(sweepDurationinSamples,1);
-        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
-        for j = 10:maxCameraTriggers-10
-            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        optoTrigger = zeros(sweepDurationinSamples,1);
+        if optoOn == true
+            maxOptoTriggers = sweepDurationinSamples/optoTriggerSamples;
+            for j = 10:maxOptoTriggers-10
+                optoTrigger(round(j * optoTriggerSamples):1:round(j*optoTriggerSamples)+Fs/(optoDuration*1000)) = 1;
+            end
         end
         % build length      
         length = ones(sweepDurationinSamples,1) * len_on;
@@ -50,7 +56,7 @@ switch protocol
         
         
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
-        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullOptoTrigger = repmat([optoTrigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
         
         %ramping length up and down for first and last second in stimulus
@@ -61,18 +67,18 @@ switch protocol
         
         %% Queue data
         
-        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
+        s.queueOutputData(horzcat(fullTrigger, fullOptoTrigger, fullLength, fullForce))
         
         [data, time] = s.startForeground();
         
     case 'forceIncreasingSteps'
         %% parameters
-        stimulus = 'IndenterForceSteps';
+        stimulus = 'IndenterOptoIncSteps';
         sweepDuration = 20; % in s
         sweepDurationinSamples = Fs * sweepDuration;
         
         interSweepInterval = 3; % in s
-        numSweeps = 30;
+        numSweeps = 10;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 6; % so that the maximum len will be at least 1 mm above platform
         intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
@@ -82,10 +88,12 @@ switch protocol
         squareWaveY = squareWaveY';
         
         % build camera trigger
-        cameraTrigger = zeros(sweepDurationinSamples,1);
-        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
-        for j = 10:maxCameraTriggers-10
-            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        optoTrigger = zeros(sweepDurationinSamples,1);
+        if optoOn == true
+            maxOptoTriggers = sweepDurationinSamples/optoTriggerSamples;
+            for j = 10:maxOptoTriggers-10
+                optoTrigger(round(j * optoTriggerSamples):1:round(j*optoTriggerSamples)+20) = 1;
+            end
         end
         
         for i = 1:size(intensities,2)
@@ -109,7 +117,7 @@ switch protocol
         force = [blankTenth; squareWaveY; blankTenth];
         
         
-        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);        
+        fullOptoTrigger = repmat([optoTrigger; zeros(interSweepSamples,1)],numSweeps,1);        
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
         
@@ -121,7 +129,7 @@ switch protocol
         
         %% Queue data
         
-        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
+        s.queueOutputData(horzcat(fullTrigger, fullOptoTrigger, fullLength, fullForce))
         
         [data, time] = s.startForeground();
         
@@ -202,10 +210,10 @@ switch protocol
         sineFrequency = 40; % in Hz
         
         % build camera trigger
-        cameraTrigger = zeros(sweepDurationinSamples,1);
-        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
-        for j = 10:maxCameraTriggers-10
-            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        optoTrigger = zeros(sweepDurationinSamples,1);
+        maxOptoTriggers = sweepDurationinSamples/optoTriggerSamples;
+        for j = 10:maxOptoTriggers-10
+            optoTrigger(round(j * optoTriggerSamples):1:round(j*optoTriggerSamples)+20) = 1;
         end        
         
         %% Build Stimuli
@@ -223,7 +231,7 @@ switch protocol
         length = ones(sweepDurationinSamples,1) * len;
         force = [blankQuarter; sineWaveY; blankQuarter];
         
-        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullOptoTrigger = repmat([optoTrigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullLength = repmat([length; ones(interSweepSamples,1)*len],numSweeps,1);
         fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
@@ -231,7 +239,7 @@ switch protocol
                 
         %% Queue data
         
-        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
+        s.queueOutputData(horzcat(fullTrigger, fullOptoTrigger, fullLength, fullForce))
         
         [data, time] = s.startForeground();
         
@@ -240,13 +248,14 @@ end
 
 
 % Save variables as fields of a structure:
-s1.cameraTriggerRate = cameraTriggerRate;
+s1.cameraTriggerRate = optoTriggerRate;
 s1.stimulus = stimulus;
 s1.Fs = Fs;
 s1.data = data;
 s1.time = time;
 s1.trigger = fullTrigger;
-s1.cameraTrigger = fullCameraTrigger;
+s1.cameraTrigger = fullOptoTrigger;
+s1.optoOn = optoOn;
 path = 'E:\DATA\';
 fullpath = strcat(path, stimulus, '_', datestr(now, 'yymmdd HHMM SS'), '.mat');
 fprintf('saved as %s \n', fullpath)
