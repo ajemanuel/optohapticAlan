@@ -3,7 +3,7 @@ function acquireIntanIndenterCamera(protocol)
 % Init DAQ
 Fs = 20000;
 s = daqSetup(Fs, 'indenterCamera');
-cameraTriggerRate = 15; % in Hz
+cameraTriggerRate = 10; % in Hz
 cameraTriggerSamples = Fs/cameraTriggerRate;
 
 switch protocol
@@ -16,7 +16,7 @@ switch protocol
         numSweeps = 1;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning o stimulus
         len_on = 8; % so that the maximum len will be above platform
-        stepIntensityMilliNewtons = 40; % in mN
+        stepIntensityMilliNewtons = 10; % in mN
         forceConversion = 50; % mN/V
         stepIntensity = stepIntensityMilliNewtons / forceConversion; % in V
         stepFrequency = 1; % 1 s steps
@@ -58,6 +58,9 @@ switch protocol
         fullLength(end-Fs:end) = len_on:(len_off-len_on)/2e4:len_off-1/2e4;
         
         fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
+        boxcarWindow = 15; % in ms
+        boxcarWindow_samples = boxcarWindow/1000*Fs;
+        fullForce = movmean(fullForce,boxcarWindow_samples);
         
         %% Queue data
         
@@ -76,6 +79,7 @@ switch protocol
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 6; % so that the maximum len will be at least 1 mm above platform
         intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
+        %intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
         stepFrequency = 1;
         squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2;
@@ -118,6 +122,77 @@ switch protocol
         fullLength(end-2e4:end) = len_on:(len_off-len_on)/2e4:len_off-1/2e4;
         
         fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
+        boxcarWindow = 15; % in ms
+        boxcarWindow_samples = boxcarWindow/1000*Fs;
+        fullForce = movmean(fullForce,boxcarWindow_samples);
+        
+        
+        %% Queue data
+        
+        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
+        
+        [data, time] = s.startForeground();
+        
+
+    case 'forceTwoSteps'
+        %% parameters
+        stimulus = 'IndenterForceSteps';
+        sweepDuration = 20; % in s
+        sweepDurationinSamples = Fs * sweepDuration;
+        
+        interSweepInterval = 0; % in s
+        numSweeps = 1;
+        len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
+        len_on = 6; % so that the maximum len will be at least 1 mm above platform
+        intensities = zeros(16,1);
+        intensities(1:2:end) = .04; % 2 mN
+        intensities(2:2:end) = .2; % 10 mN
+        stepFrequency = 1;
+        squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
+        squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2;
+        squareWaveY = squareWaveY';
+        
+        % build camera trigger
+        cameraTrigger = zeros(sweepDurationinSamples,1);
+        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
+        for j = 10:maxCameraTriggers-10
+            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        end
+        
+        for i = 1:size(intensities,1)
+            if i == 1
+                squareWaveY(1:i*Fs/stepFrequency) = intensities(i) * squareWaveY(1:i*Fs/stepFrequency);
+            else
+                squareWaveY((i-1)*Fs/stepFrequency:i*Fs/stepFrequency) = intensities(i) *...
+                    squareWaveY((i-1)*Fs/stepFrequency:i*Fs/stepFrequency);
+            end
+        end
+        
+        clear squareWaveT
+        
+        %% build stimuli
+        sweepDurationinSamples = Fs * sweepDuration;
+        interSweepSamples = interSweepInterval * Fs;
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1; % trigger determines length of intan recording, which will have buffer at beg and end
+        length = ones(sweepDurationinSamples,1) * len_on;
+        blankTenth = zeros(sweepDurationinSamples*.1,1);
+        force = [blankTenth; squareWaveY; blankTenth];
+        
+        
+        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);        
+        fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
+        
+        %ramping length up and down for first and last second in stimulus
+        fullLength(1:2e4) = len_off:(len_on-len_off)/2e4:len_on-1/2e4;
+        fullLength(end-2e4:end) = len_on:(len_off-len_on)/2e4:len_off-1/2e4;
+        
+        fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
+        boxcarWindow = 15; % in ms
+        boxcarWindow_samples = boxcarWindow/1000*Fs;
+        fullForce = movmean(fullForce,boxcarWindow_samples);
+        
         
         %% Queue data
         

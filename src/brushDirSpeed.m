@@ -4,13 +4,13 @@ function [  ] = brushDirSpeed( )
 
 %% Set Parameters
 
-min_x = 0; % mm
-min_y = 0; % mm
-max_x = 18; % mm
-max_y = 18; % mm
+min_x = 2; % mm
+min_y = 2; % mm
+max_x = 16; % mm
+max_y = 16; % mm
 spacing = 2; % mm
-velocities = [16, 32, 64]; %mm/s
-num_repetitions = 1; % # of times repeating entire grid
+velocities = [8,16,32,64]; %mm/s
+num_repetitions = 8; % # of times repeating entire grid
 num_positions = length(min_x:spacing:max_x);
 starts = horzcat([min_x:spacing:max_x]',repmat(min_y,num_positions,1));
 starts = vertcat(starts,horzcat(repmat(min_x,num_positions,1),[min_y:spacing:max_y]'));
@@ -113,6 +113,34 @@ for axes = 1:size(availableAxes,2)
 end
 
 
+%%set up "in Motion" trigger mode
+% Send the info about whether an axis is in motion or not from PIdevice to
+% Intan.
+% Make sure that you start PIMikroMove, click on the tab "C-867", choose
+% "Configure Trigger Output" and Enable 3 and 4.
+PIdevice.TRO (3, 1)%axis1
+PIdevice.TRO (4, 1)%axis2
+
+%indicates the axis to be moved
+PIdevice.CTO (3,2,1)%axis1
+PIdevice.CTO (4,2,2)%axis2
+% % specifies the In Motion trigger mode
+% PIdevice.CTO (3,3,6)
+% PIdevice.CTO (4,3,6)
+% 
+% % specifies the On Target trigger mode
+% PIdevice.CTO (3,3,2)
+% PIdevice.CTO (4,3,2)
+
+
+% specifies the Single Position =9 trigger mode
+PIdevice.CTO (3,3,8)
+PIdevice.CTO (4,3,8)
+PIdevice.CTO (3,10,9)
+PIdevice.CTO (4,10,9)
+
+
+
 %% Move Stages
 
 
@@ -180,23 +208,31 @@ clear Controller;
 clear PIdevice;
 
 
-% %% Save structure with stimulus information
-% s1.stimulus = 'GridIndent';
-% s1.min_x = min_x;
-% s1.max_x = max_x;
-% s1.min_y = min_y;
-% s1.max_y = max_y;
-% s1.num_repetitions = num_repetitions;
-% s1.grid_spacing = grid_spacing;
-% s1.grid_positions = grid_positions;
-% s1.grid_positions_rand = grid_positions_rand;
-% s1.grid_positions_actual = grid_positions_actual;
-% 
-% path = 'E:\DATA\';
-% fullpath = strcat(path,s1.stimulus,'_', datestr(now,'yymmdd HHMM SS'), '.mat');
-% fprintf('saved as %s\n', fullpath)
-% save(fullpath, '-struct', 's1');
+%% read codeFile
 
-%positonReached = PIdevice.qPOS(axis)
+fid = fopen([mfilename('fullpath'), '.m'], 'rt');
+experimentCodeFile = fread(fid, inf, '*char');
+fclose(fid);
+% to read this back in from saved codeFile, use dlmwrite('output.m',experimentCodeFile','')
+%% Save structure with stimulus information
+s1.stimulus = 'brushDirSpeed';
+s1.min_x = min_x;
+s1.max_x = max_x;
+s1.min_y = min_y;
+s1.max_y = max_y;
+s1.spacing = spacing;
+s1.velocities = velocities;
+s1.num_repetitions = num_repetitions;
+s1.num_positions = num_positions;
+s1.starts = starts;
+s1.ends = ends;
+s1.experimentCodeFile = experimentCodeFile;
+
+path = 'E:\DATA\';
+fullpath = strcat(path,s1.stimulus,'_', datestr(now,'yymmdd HHMM SS'), '.mat');
+fprintf('saved as %s\n', fullpath)
+save(fullpath, '-struct', 's1');
+
+
 end
 
