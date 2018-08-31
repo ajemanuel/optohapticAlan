@@ -9,7 +9,7 @@ function align( offsetX, offsetY, time)
 
 
 % Init DAQ
-Fs = 80000;
+Fs = 20000;
 s = daqSetup(Fs, 'laser');
 voltageToDegrees = 1.25; % degrees/volt, thorlabs galvos
 degreesToDistance = 3075; % microns/degrees, FTH100-1064 mounted in thorlabs cage mirror mount

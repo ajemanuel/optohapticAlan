@@ -91,11 +91,13 @@ switch config
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIbrush],'Voltage');
         dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
         dch.Name = 'trigger';
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case {'opto', 'optotag'}
         ch = addAnalogInputChannel(s,Device,AItrigger,'Voltage');
         dch = addDigitalChannel(s,Device,{DOtrigger, DOopto},'OutputOnly');
         dch(1).Name = 'trigger';
-        dch(2).Name = 'opto';                
+        dch(2).Name = 'opto';
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case {'laser'}
         addAnalogOutputChannel(s,OldDevice,[AOxScan, AOyScan],'Voltage');
         %ch = addAnalogInputChannel(s,OldDevice,[AItrigger],'Voltage'); %
@@ -103,16 +105,19 @@ switch config
         dch = addDigitalChannel(s,OldDevice,{DOtrigger, DOlaser},'OutputOnly');
         dch(1).Name = 'trigger';
         dch(2).Name = 'Laser';
+        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
     case 'brushCamera'
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIbrush],'Voltage');
         dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
         dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'indenter'
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
         dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
         dch.Name = 'trigger';
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'indenterCamera'
         fprintf('Adding analog input channels\n')
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
@@ -122,12 +127,14 @@ switch config
         dch(2).Name = 'CameraTrigger';
         fprintf('Adding analog output channels\n')
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'indenterOpto'
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
         dch = addDigitalChannel(s,Device,{DOtrigger, DOopto},'OutputOnly');
         dch(1).Name = 'trigger';
         dch(2).Name = 'opto';
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'printHead'
         
         ch = addAnalogInputChannel(s,OldDevice,[AItrigger],'Voltage'); %
@@ -139,6 +146,7 @@ switch config
                                 pos17, pos18, pos19, pos20,...
                                 pos21, pos22, pos23, pos24},...
                             'OutputOnly');
+        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
         
     otherwise
         error('config not correct')

@@ -8,9 +8,9 @@ function acquireIntanLaser(protocol)
     switch protocol
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
-            edgeLength = 15000; % in microns      
-            offsetX = -22500; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
-            offsetY = 0; % in microns
+            edgeLength = 10000; % in microns      
+            offsetX = -25000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
+            offsetY = 2000; % in microns
             numStim = 20000; 
             dwellTime = 0.0003;  %.001 singes FST ruler
             ISI = .075;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
@@ -19,6 +19,7 @@ function acquireIntanLaser(protocol)
             [x1,y1,lz1] = randSquareWithOffset(edgeLength, offsetX, offsetY, numStim, dwellTime, ISI, Fs);
             trigger = zeros(1,length(x1));
             trigger(2:end-2) = 1;
+            s1.edgeLength = edgeLength;
             %lz2(1:round(Fs/acqFPS):end) = 9; %possible to trigger with a single sample?
         case 'squareGridWithOffset'
             stimulus = 'squareGridWithOffset';
@@ -33,6 +34,7 @@ function acquireIntanLaser(protocol)
             [x1,y1,lz1] = squareGridWithOffset(edgeLength, offsetX, offsetY, spacing, numRepetitions, dwellTime, ISI, Fs);
             trigger = zeros(1,length(x1));
             trigger(2:end-2) = 1;
+            s1.edgeLength = edgeLength;
         case 'rastGridWithOffset'
             stimulus = 'rastGridWithOffset';
             edgeLength = 6000;
@@ -47,6 +49,43 @@ function acquireIntanLaser(protocol)
             trigger = zeros(1,length(x1));
             trigger(2:end-2) = 1;
             s1.direction = direction;
+            s1.edgeLength = edgeLength;
+        case 'pulseSinglePoint'
+            stimulus = 'singlePoint';
+            offsetX = -27000;
+            offsetY = 2000;
+            stimFrequency = 5; % in Hz
+            dwellTime = 0.0003; % in s
+            duration = 2; % in s
+            numTrials = 20;
+            ISI = 10; % in s
+            
+            % construct stimulus
+            squareWaveT = 0:1/Fs:duration;
+            duty = dwellTime/(1/stimFrequency) * 100;
+            squareWaveY = (square(2*pi*stimFrequency*squareWaveT,duty)+1)/2;
+            squareWaveY = squareWaveY';
+            interStim = zeros(ISI*Fs,1);
+            
+            lz1 = repmat([interStim; squareWaveY], numTrials, 1);
+            lz1 = [lz1; interStim]; % end with another intertrial interval
+            trigger = zeros(length(lz1),1);
+            trigger(2:end-2) = 1;
+            trigger = trigger';
+            x1 = ones(length(lz1),1) * offsetX;
+            y1 = ones(length(lz1),1) * offsetY;
+            voltageToDegrees = 1.25; % degrees/volt, thorlabs small beam galvos
+            degreesToDistance = 3075; % microns/degrees, FTH100-1064
+            voltageToDistance = voltageToDegrees * degreesToDistance; % microns/volt
+            x1 = x1 / voltageToDistance;
+            y1 = y1 / voltageToDistance;
+            
+            
+            s1.stimFrequency = stimFrequency;
+            s1.stimDuration = duration;
+            s1.interTrialTime = ISI;
+            s1.numTrials = numTrials;
+        
             
     end
 
@@ -66,7 +105,7 @@ function acquireIntanLaser(protocol)
 
     % Save the fields of a structure as individual variables:
     s1.stimulus = stimulus;
-    s1.edgeLength = edgeLength;
+    
     s1.offsetX = offsetX;
     s1.offsetY = offsetY;
     %s1.numStim = numStim;

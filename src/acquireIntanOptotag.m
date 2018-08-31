@@ -9,15 +9,15 @@ s = daqSetup(Fs, 'opto');
 
 %% parameters
 stimulus = 'optotag';
-sweepDuration = 180; % in s
+sweepDuration = 10; % in s
 sweepDurationinSamples = Fs * sweepDuration;
-interSweepInterval = 10; % in s
+interSweepInterval = 30; % in s
 interSweep_samples = interSweepInterval * Fs;
-numSweeps = 2;
+numSweeps = 10;
 
 switch protocol
     case 'pulse'
-        lightDur = 50; % in ms
+        lightDur = 1; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
         numFrequencies = 5;

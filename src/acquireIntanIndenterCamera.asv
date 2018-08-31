@@ -268,31 +268,28 @@ switch protocol
     case 'forceSine'
         %% parameters
         stimulus = 'IndenterSine';
-        sweepDuration = 2; % in s
+        sweepDuration = 10; % in s
         sweepDurationinSamples = sweepDuration * Fs;
         interSweepInterval = 2; % in s
         numSweeps = 50;
         len = 4; % so that the maximum len will be ~ 1 mm above platform
-        forceRange = [1,30];
-        freqRange = [5, 100];
+        forceRange = [1,75];
+        freqRange = [2, 100];
         voltageConversion = 53.869; % mN/V calibrated 1/23/18
             
         
         %build stimuli
         sineWaveT = 0:1/Fs:(.5*sweepDuration)-1/Fs;
         sineWaveY = zeros(size(sineWaveT,2),numSweeps);
-        sineAmplitude = zeros(numSweeps,1);
-        sineFrequency = zeros(numSweeps,1);
+        sineAmplitude = zeros(num
         for i = 1:numSweeps
             
-            sineAmplitude(i) = rand*(forceRange(2)/voltageConversion)+forceRange(1)/voltageConversion; % in V
+            sineAmplitude = rand*(forceRange(2)/voltageConversion)+forceRange(1)/voltageConversion; % in V
             
-            sineFrequency(i) = rand*freqRange(2) + freqRange(1); % in Hz
-            sineWaveY(:,i) = (sin(2*pi*sineFrequency(i)*sineWaveT)+1)/2*sineAmplitude(i);
+            sineFrequency = rand*freqRange(2) + freqRange(1); % in Hz
+            sineWaveY(:,i) = (sin(2*pi*sineFrequency*sineWaveT)+1)/2*sineAmplitude;
             
         end
-        s1.sineAmplitude = sineAmplitude*voltageConversion; % in mN
-        s1.sineFrequency = sineFrequency;
         % build camera trigger
         cameraTrigger = zeros(sweepDurationinSamples,1);
         maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
