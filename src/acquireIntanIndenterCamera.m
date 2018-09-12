@@ -74,8 +74,8 @@ switch protocol
         sweepDuration = 20; % in s
         sweepDurationinSamples = Fs * sweepDuration;
         
-        interSweepInterval = 3; % in s
-        numSweeps = 2;
+        interSweepInterval = 2; % in s
+        numSweeps = 30;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 6; % so that the maximum len will be at least 1 mm above platform
         intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
@@ -270,11 +270,11 @@ switch protocol
         stimulus = 'IndenterSine';
         sweepDuration = 2; % in s
         sweepDurationinSamples = sweepDuration * Fs;
-        interSweepInterval = 2; % in s
-        numSweeps = 50;
+        interSweepInterval = .5; % in s
+        numSweeps = 400;
         len = 4; % so that the maximum len will be ~ 1 mm above platform
         forceRange = [1,30];
-        freqRange = [5, 100];
+        freqRange = [10, 100];
         voltageConversion = 53.869; % mN/V calibrated 1/23/18
             
         
@@ -285,9 +285,9 @@ switch protocol
         sineFrequency = zeros(numSweeps,1);
         for i = 1:numSweeps
             
-            sineAmplitude(i) = rand*(forceRange(2)/voltageConversion)+forceRange(1)/voltageConversion; % in V
+            sineAmplitude(i) = rand*((forceRange(2)-forceRange(1))/voltageConversion)+forceRange(1)/voltageConversion; % in V
             
-            sineFrequency(i) = rand*freqRange(2) + freqRange(1); % in Hz
+            sineFrequency(i) = rand*(freqRange(2)-freqRange(1)) + freqRange(1); % in Hz
             sineWaveY(:,i) = (sin(2*pi*sineFrequency(i)*sineWaveT)+1)/2*sineAmplitude(i);
             
         end
@@ -296,7 +296,7 @@ switch protocol
         % build camera trigger
         cameraTrigger = zeros(sweepDurationinSamples,1);
         maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
-        for j = 10:maxCameraTriggers-10
+        for j = 2:maxCameraTriggers-2
             cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
         end        
         

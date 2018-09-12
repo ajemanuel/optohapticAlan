@@ -3,7 +3,7 @@ function acquireIntanIndenterOpto(protocol, optoOn)
 % Init DAQ
 Fs = 20000;
 s = daqSetup(Fs, 'indenterOpto');
-optoTriggerRate = 15; % in Hz
+optoTriggerRate = 10; % in Hz
 optoTriggerSamples = Fs/optoTriggerRate;
 optoDuration = 2; % in ms
 if nargin < 2
@@ -78,7 +78,7 @@ switch protocol
         sweepDurationinSamples = Fs * sweepDuration;
         
         interSweepInterval = 3; % in s
-        numSweeps = 10;
+        numSweeps = 1;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 6; % so that the maximum len will be at least 1 mm above platform
         intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
@@ -126,6 +126,9 @@ switch protocol
         fullLength(end-2e4:end) = len_on:(len_off-len_on)/2e4:len_off-1/2e4;
         
         fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
+        boxcarWindow = 15; % in ms
+        boxcarWindow_samples = boxcarWindow/1000*Fs;
+        fullForce = movmean(fullForce,boxcarWindow_samples);
         
         %% Queue data
         

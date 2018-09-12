@@ -9,11 +9,11 @@ s = daqSetup(Fs, 'opto');
 
 %% parameters
 stimulus = 'optotag';
-sweepDuration = 10; % in s
+sweepDuration = 5; % in s
 sweepDurationinSamples = Fs * sweepDuration;
-interSweepInterval = 30; % in s
+interSweepInterval = 2; % in s
 interSweep_samples = interSweepInterval * Fs;
-numSweeps = 10;
+numSweeps = 60;
 
 switch protocol
     case 'pulse'
@@ -44,10 +44,10 @@ switch protocol
     
     case 'randomPulse'
         
-        lightDur = 20; % in ms
+        lightDur = 50; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
-        meanFrequency = 1;
+        meanFrequency = 0.5;
         numStim = sweepDuration/meanFrequency;
         rng(20180615)
         starts = int32(rand(numStim,1) * sweepDuration * Fs);
@@ -64,9 +64,9 @@ switch protocol
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
         
     case 'sustained'
-        lightDur = 5; %s
-        lightDur_samples = 5*Fs; % convert to samples
-        lightOnset = 2.5; %s
+        lightDur = 2; %s
+        lightDur_samples = lightDur*Fs; % convert to samples
+        lightOnset = 1.5; %s
         lightOnset_samples = lightOnset * Fs;
         lightOffset_samples = lightOnset_samples + lightDur_samples;
         
