@@ -74,10 +74,10 @@ switch protocol
         sweepDuration = 20; % in s
         sweepDurationinSamples = Fs * sweepDuration;
         
-        interSweepInterval = 2; % in s
+        interSweepInterval = .5; % in s
         numSweeps = 30;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
-        len_on = 6; % so that the maximum len will be at least 1 mm above platform
+        len_on = 9; % so that the maximum len will be at least 1 mm above platform
         intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
         %intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
         stepFrequency = 1;
@@ -143,7 +143,7 @@ switch protocol
         interSweepInterval = 0; % in s
         numSweeps = 1;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
-        len_on = 6; % so that the maximum len will be at least 1 mm above platform
+        len_on = 10; % so that the maximum len will be at least 1 mm above platform
         intensities = zeros(16,1);
         intensities(1:2:end) = .04; % 2 mN
         intensities(2:2:end) = .2; % 10 mN
@@ -271,10 +271,11 @@ switch protocol
         sweepDuration = 2; % in s
         sweepDurationinSamples = sweepDuration * Fs;
         interSweepInterval = .5; % in s
-        numSweeps = 400;
-        len = 4; % so that the maximum len will be ~ 1 mm above platform
-        forceRange = [1,30];
-        freqRange = [10, 100];
+        numSweeps = 500;
+        len_off = 0;
+        len_on = 6; % so that the maximum len will be ~ 1 mm above platform
+        forceRange = [1,40];
+        frequencies = [2, 5, 10, 20, 40, 50, 60, 80, 100, 120];
         voltageConversion = 53.869; % mN/V calibrated 1/23/18
             
         
@@ -287,8 +288,8 @@ switch protocol
             
             sineAmplitude(i) = rand*((forceRange(2)-forceRange(1))/voltageConversion)+forceRange(1)/voltageConversion; % in V
             
-            sineFrequency(i) = rand*(freqRange(2)-freqRange(1)) + freqRange(1); % in Hz
-            sineWaveY(:,i) = (sin(2*pi*sineFrequency(i)*sineWaveT)+1)/2*sineAmplitude(i);
+            sineFrequency(i) = frequencies(randi(size(frequencies),1)); % in Hz
+            sineWaveY(:,i) = (sin(2*pi*sineFrequency(i)*sineWaveT - pi/2 )+1)/2*sineAmplitude(i);
             
         end
         s1.sineAmplitude = sineAmplitude*voltageConversion; % in mN
@@ -308,14 +309,81 @@ switch protocol
                 
         blankQuarter = zeros(sweepDurationinSamples*.25,1);
         
-        length = ones(sweepDurationinSamples,1) * len;
+        length = ones(sweepDurationinSamples,1) * len_on;
         fullForce = [];
         for i=1:numSweeps
             fullForce = [fullForce; blankQuarter; sineWaveY(:,i); blankQuarter;zeros(interSweepSamples,1)];
         end
         fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
-        fullLength = repmat([length; ones(interSweepSamples,1)*len],numSweeps,1);
+        fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
+        %ramping length up and down for first and last half second in stimulus
+        fullLength(1:1e4) = len_off:(len_on-len_off)/1e4:len_on-1/1e4;
+        fullLength(end-1e4:end) = len_on:(len_off-len_on)/1e4:len_off-1/1e4;
+        
+                
+        %% Queue data
+        
+        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
+        
+        [data, time] = s.startForeground();
+
+case 'forceSineRamp'
+        %% parameters
+        stimulus = 'IndenterSine';
+        sweepDuration = 10; % in s
+        sweepDurationinSamples = sweepDuration * Fs;
+        interSweepInterval = .5; % in s
+        len_off = 0;
+        len_on = 6; % so that the maximum len will be ~ 1 mm above platform
+        forceRange = [0,25];
+        frequencies = [2; 5; 10; 20; 40; 50; 60; 80; 100; 120];
+        repetitions = 2;
+        numSweeps = size(frequencies,1)*repetitions;
+        voltageConversion = 53.869; % mN/V calibrated 1/23/18
+        for i = 1:repetitions
+            tempIndex = randperm(size(frequencies,1));
+            if i == 1
+                sineFrequency = frequencies(tempIndex);
+            else
+                sineFrequency = [sineFrequency; frequencies(tempIndex)];
+            end
+        end
+        %build stimuli
+        sineWaveT = 0:1/Fs:(.5*sweepDuration)-1/Fs;
+        sineWaveY = zeros(size(sineWaveT,2),numSweeps);
+        for i = 1:numSweeps
+            amplitudeRamp = (sineWaveT*((forceRange(2)-forceRange(1))/(.5*sweepDuration)) + forceRange(1))/voltageConversion;
+            sineWaveY(:,i) = (sin(2*pi*sineFrequency(i)*sineWaveT - pi/2 )+1)/2.*amplitudeRamp;
+        end
+        s1.forceRange = forceRange;
+        s1.sineFrequency = sineFrequency;
+        % build camera trigger
+        cameraTrigger = zeros(sweepDurationinSamples,1);
+        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
+        for j = 2:maxCameraTriggers-2
+            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        end        
+        
+        %% Build Stimuli
+        sweepDurationinSamples = Fs * sweepDuration;
+        interSweepSamples = interSweepInterval * Fs;
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1; % trigger determines length of intan recording, which will have buffer at beg and end
+                
+        blankQuarter = zeros(sweepDurationinSamples*.25,1);
+        
+        length = ones(sweepDurationinSamples,1) * len_on;
+        fullForce = [];
+        for i=1:numSweeps
+            fullForce = [fullForce; blankQuarter; sineWaveY(:,i); blankQuarter;zeros(interSweepSamples,1)];
+        end
+        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
+        %ramping length up and down for first and last half second in stimulus
+        fullLength(1:1e4) = len_off:(len_on-len_off)/1e4:len_on-1/1e4;
+        fullLength(end-1e4:end) = len_on:(len_off-len_on)/1e4:len_off-1/1e4;
         
                 
         %% Queue data

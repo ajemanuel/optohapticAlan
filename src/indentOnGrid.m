@@ -118,6 +118,11 @@ for axes = 1:size(availableAxes,2)
 end
 
 
+%% Query Starting Position
+
+startPosAxis1 = PIdevice.qPOS(availableAxes{1});
+startPosAxis2 = PIdevice.qPOS(availableAxes{2});
+
 %% Move Stages
 
 
@@ -153,6 +158,25 @@ for gridLoc = 1:size(grid_positions_rand)
 end
 end
 
+%% Return to starting positions
+PIdevice.MOV ( availableAxes{1}, startPosAxis1);
+    disp ( 'X axis stage is moving to original position')
+    % wait for motion to stop
+    while(0 ~= PIdevice.IsMoving ( availableAxes{1} ) )
+        pause ( 0.05 );
+        fprintf('.');
+    end
+    fprintf('\n');
+
+PIdevice.MOV ( availableAxes{2}, startPosAxis2);
+    disp ( 'Y axis stage is moving to original position')
+    % wait for motion to stop
+    while(0 ~= PIdevice.IsMoving ( availableAxes{2} ) )
+        pause ( 0.05 );
+        fprintf('.');
+    end
+    
+    
 %% If you want to close the connection
 PIdevice.CloseConnection ();
 

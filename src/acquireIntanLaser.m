@@ -8,12 +8,12 @@ function acquireIntanLaser(protocol)
     switch protocol
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
-            edgeLength = 10000; % in microns      
-            offsetX = -28000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
-            offsetY = 0; % in microns
-            numStim = 10000; 
-            dwellTime = 0.0006;  %.001 singes FST ruler
-            ISI = .075;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
+            edgeLength = 12000; % in microns      
+            offsetX = -23000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
+            offsetY = 1000; % in microns
+            numStim = 8000; 
+            dwellTime = 0.0003;  %.001 singes FST ruler
+            ISI = .15;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
 
             rng(.08041961) % seed random number generator for reproducibility
             [x1,y1,lz1] = randSquareWithOffset(edgeLength, offsetX, offsetY, numStim, dwellTime, ISI, Fs);
@@ -52,13 +52,13 @@ function acquireIntanLaser(protocol)
             s1.edgeLength = edgeLength;
         case 'pulseSinglePoint'
             stimulus = 'singlePoint';
-            offsetX = -28000;
+            offsetX = -26500;
             offsetY = 0;
             stimFrequency = 20; % in Hz
             dwellTime = 0.0003; % in s
             duration = 2; % in s
-            numTrials = 10;
-            ISI = 10; % in s
+            numTrials = 30;
+            ISI = 6; % in s
             
             % construct stimulus
             squareWaveT = 0:1/Fs:duration;
@@ -90,13 +90,9 @@ function acquireIntanLaser(protocol)
     end
 
 
-    size(x1)
-    size(y1)
-    size(trigger')
-    size(lz1)
-     s.queueOutputData(horzcat(x1, y1, trigger', lz1))
-     pause(2);
-     data = s.startForeground();
+    s.queueOutputData(horzcat(x1, y1, trigger', lz1))
+    pause(1);
+    data = s.startForeground();
 
 
 

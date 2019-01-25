@@ -9,22 +9,23 @@ s = daqSetup(Fs, 'opto');
 
 %% parameters
 stimulus = 'optotag';
-sweepDuration = 5; % in s
+sweepDuration = 10; % in s
 sweepDurationinSamples = Fs * sweepDuration;
 interSweepInterval = 2; % in s
 interSweep_samples = interSweepInterval * Fs;
-numSweeps = 60;
+numSweeps = 10;
 
 switch protocol
     case 'pulse'
-        lightDur = 1; % in ms
+        lightDur = 10; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
-        numFrequencies = 5;
-        optoFrequencies = [1, 2, 5, 10, 20];
+        
+        optoFrequencies = [2, 5, 10, 20, 40];
+        numFrequencies = length(optoFrequencies);
         squareWaveT = 0:1/Fs:(1/numFrequencies*sweepDuration) - 1/Fs;
 
-        for i = 1:length(optoFrequencies)
+        for i = 1:numFrequencies
             dutyCycle = lightDur_samples/(Fs/optoFrequencies(i))*100;
             if i == 1
                 squareWaveY = (square(2*pi*optoFrequencies(i)*squareWaveT,dutyCycle)+1)/2;
@@ -47,7 +48,7 @@ switch protocol
         lightDur = 50; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
-        meanFrequency = 0.5;
+        meanFrequency = 1;
         numStim = sweepDuration/meanFrequency;
         rng(20180615)
         starts = int32(rand(numStim,1) * sweepDuration * Fs);
@@ -76,7 +77,7 @@ switch protocol
         trigger(2:1:end-1) = 1;
         fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
-    end
+end
         
 s.queueOutputData(horzcat(fullTrigger, fullOpto));
 

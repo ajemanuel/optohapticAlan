@@ -5,7 +5,7 @@ Fs = 20000;
 s = daqSetup(Fs, 'indenterOpto');
 optoTriggerRate = 10; % in Hz
 optoTriggerSamples = Fs/optoTriggerRate;
-optoDuration = 2; % in ms
+optoDuration = 1; % in ms
 if nargin < 2
     optoOn = true;
 end
@@ -19,16 +19,16 @@ switch protocol
         
         numSweeps = 1;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning o stimulus
-        len_on = 8; % so that the maximum len will be above platform
-        stepIntensityMilliNewtons = 40; % in mN
-        forceConversion = 50; % mN/V
+        len_on = 6; % so that the maximum len will be above platform
+        stepIntensityMilliNewtons = 20; % in mN
+        forceConversion = 53.869; % mN/V
         stepIntensity = stepIntensityMilliNewtons / forceConversion; % in V
-        stepFrequency = 1; % 1 s steps
+        stepFrequency = .5; % 1 s steps
         
         %% build stimuli        
         
         % square wave for force
-        squareWaveT = 0:1/Fs:(.9*sweepDuration)-1/Fs;
+        squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2*stepIntensity;
         squareWaveY = squareWaveY';
         clear squareWaveT
@@ -50,9 +50,9 @@ switch protocol
         end
         % build length      
         length = ones(sweepDurationinSamples,1) * len_on;
-        blankTwentieth = zeros(sweepDurationinSamples*.05,1);
+        blankTenth = zeros(sweepDurationinSamples*.1,1);
         % build force
-        force = [blankTwentieth; squareWaveY; blankTwentieth];
+        force = [blankTenth; squareWaveY; blankTenth];
         
         
         fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
@@ -64,6 +64,10 @@ switch protocol
         fullLength(end-Fs:end) = len_on:(len_off-len_on)/2e4:len_off-1/2e4;
         
         fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
+        boxcarWindow = 15; % in ms
+        boxcarWindow_samples = boxcarWindow/1000*Fs;
+        fullForce = movmean(fullForce,boxcarWindow_samples);
+        
         
         %% Queue data
         
@@ -71,6 +75,73 @@ switch protocol
         
         [data, time] = s.startForeground();
         
+    case 'forceStepsOptoOdd'  %% this protocol gives a train of force steps for the specified duration
+        %% parameters
+        stimulus = 'IndenterOptoForceSteps';
+        sweepDuration = 20; % in s
+        interSweepInterval = .25; % in s
+        
+        numSweeps = 30;
+        len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning o stimulus
+        len_on = 6; % so that the maximum len will be above platform
+        stepIntensityMilliNewtons = 20; % in mN
+        forceConversion = 53.869; % mN/V
+        stepIntensity = stepIntensityMilliNewtons / forceConversion; % in V
+        stepFrequency = .5; % 1 s steps
+        optoLag = -0.25; % in seconds
+        
+        %% build stimuli        
+        
+        % square wave for force
+        squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
+        squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2*stepIntensity;
+        squareWaveY = squareWaveY';
+        clear squareWaveT
+             
+
+        
+        sweepDurationinSamples = Fs * sweepDuration;
+        interSweepSamples = interSweepInterval * Fs;
+        % build trigger
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1; % trigger determines length of intan recording, which will have buffer at beg and end
+        % build camera trigger
+        optoTrigger = zeros(sweepDurationinSamples,1);
+        if optoOn == true
+            stepStarts = [0:40000:300000] + 40000; % only true for 0.5 s sampling
+            stepEnds = [20000:40000:300000] + 40000;
+            optoStarts = optoLag*Fs:Fs/optoTriggerRate:(stepEnds(1) - stepStarts(1))-optoLag*Fs;
+            for i = 1:2:size(stepStarts,2) % every other step
+                for j = 1:size(optoStarts,2)
+                    optoTrigger(stepStarts(i)+optoStarts(j):stepStarts(i)+optoStarts(j)+optoDuration/1000*Fs) = 1;
+                end
+            end
+        end
+        % build length      
+        length = ones(sweepDurationinSamples,1) * len_on;
+        blankTenth = zeros(sweepDurationinSamples*.1,1);
+        % build force
+        force = [blankTenth; squareWaveY; blankTenth];
+        
+        
+        fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullOptoTrigger = repmat([optoTrigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
+        
+        %ramping length up and down for first and last second in stimulus
+        fullLength(1:Fs) = len_off:(len_on-len_off)/2e4:len_on-1/2e4;
+        fullLength(end-Fs:end) = len_on:(len_off-len_on)/2e4:len_off-1/2e4;
+        
+        fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
+        boxcarWindow = 15; % in ms
+        boxcarWindow_samples = boxcarWindow/1000*Fs;
+        fullForce = movmean(fullForce,boxcarWindow_samples);
+        
+        %% Queue data
+        
+        s.queueOutputData(horzcat(fullTrigger, fullOptoTrigger, fullLength, fullForce))
+        
+        [data, time] = s.startForeground();        
     case 'forceIncreasingSteps'
         %% parameters
         stimulus = 'IndenterOptoIncSteps';
@@ -87,7 +158,7 @@ switch protocol
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2;
         squareWaveY = squareWaveY';
         
-        % build camera trigger
+        % build led trigger
         optoTrigger = zeros(sweepDurationinSamples,1);
         if optoOn == true
             maxOptoTriggers = sweepDurationinSamples/optoTriggerSamples;
@@ -259,6 +330,7 @@ s1.time = time;
 s1.trigger = fullTrigger;
 s1.cameraTrigger = fullOptoTrigger;
 s1.optoOn = optoOn;
+s1.optoDuration = optoDuration;
 path = 'E:\DATA\';
 fullpath = strcat(path, stimulus, '_', datestr(now, 'yymmdd HHMM SS'), '.mat');
 fprintf('saved as %s \n', fullpath)
