@@ -9,9 +9,9 @@ s = daqSetup(Fs, 'opto');
 
 %% parameters
 stimulus = 'optotag';
-sweepDuration = 10; % in s
+sweepDuration = 2; % in s
 sweepDurationinSamples = Fs * sweepDuration;
-interSweepInterval = 2; % in s
+interSweepInterval = 0.5; % in s
 interSweep_samples = interSweepInterval * Fs;
 numSweeps = 10;
 
@@ -43,6 +43,49 @@ switch protocol
         fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
         fullOpto = repmat([squareWaveY;zeros(interSweep_samples,1)],numSweeps,1);
     
+    case 'pairedPulse'
+        sweepDuration = 2; % in s
+        sweepDurationinSamples = Fs * sweepDuration;
+        lightDur = 1; % in ms
+        lightDur_s = lightDur/1000; % convert to seconds
+        lightDur_samples = lightDur_s * Fs; % convert to samples
+        
+        lags = [2,4,8,16, 32, 64, 100, 128, 256, 512]; % in ms
+        permutedLags = lags(randperm(size(lags,2)));
+        
+        numLags = length(lags);
+        numRepetitions = 20;
+        allLags = repmat(permutedLags,1,numRepetitions);
+        allLags_samples = allLags * Fs/1000;
+        numSweeps = numLags * numRepetitions;
+        s1.allLags = allLags;
+        s1.numSweeps = numSweeps;
+        optos = zeros(sweepDurationinSamples,numSweeps);
+        
+        startFirstPulse = sweepDurationinSamples/2;
+        endFirstPulse = startFirstPulse + lightDur_samples;
+        optos(startFirstPulse:endFirstPulse,:) = 1;
+        
+        for i = 1:numSweeps
+            startSecondPulse = startFirstPulse + allLags_samples(i);
+            endSecondPulse = startSecondPulse + lightDur_samples;
+            optos(startSecondPulse:endSecondPulse,i) = 1;
+        end
+
+      
+        
+        
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1;
+        fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
+        for i = 1:numSweeps
+            if i == 1
+                fullOpto = [optos(:,i);zeros(interSweep_samples,1)];
+            else
+                fullOpto = [fullOpto; optos(:,i); zeros(interSweep_samples,1)];
+            end
+        end
+        
     case 'randomPulse'
         
         lightDur = 50; % in ms
