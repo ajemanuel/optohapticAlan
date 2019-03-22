@@ -84,7 +84,7 @@ switch protocol
         numSweeps = 30;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning o stimulus
         len_on = 6; % so that the maximum len will be above platform
-        stepIntensityMilliNewtons = 20; % in mN
+        stepIntensityMilliNewtons = 40; % in mN
         forceConversion = 53.869; % mN/V
         stepIntensity = stepIntensityMilliNewtons / forceConversion; % in V
         stepFrequency = .5; % 1 s steps
@@ -217,12 +217,12 @@ switch protocol
         interSweepInterval = 0.5; % in s
         len = 8; % so that the maximum len will be ~ 1 mm above platform
         
-        lags = [-.45,-.25,-.2,-.15,-.1,-.05,-.025,-0.01,-0.005,0,0.005, .01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.45];
+        lags = [-.45,-.25,-.2,-.15,-.1,-.05,-.025,-0.01,0,0.01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.45];
         numLags = size(lags,2);
         lagsPermuted = lags(randperm(numLags));
         numRepetitions = 20;
-        forceIntensity = 20; % mN
-        numSweeps = numLags * numRepetitions; % currently 380
+        forceIntensity = 40; % mN
+        numSweeps = numLags * numRepetitions; % currently 340
         
         s1.lagsPermuted = lagsPermuted;
         s1.numRepetitions = numRepetitions;

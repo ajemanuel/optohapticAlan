@@ -9,8 +9,8 @@ function acquireIntanLaser(protocol)
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
             edgeLength = 12000; % in microns      
-            offsetX = -23000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
-            offsetY = 0; % in microns
+            offsetX = -25000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
+            offsetY = 3000; % in microns
             numStim = 8000; 
             dwellTime = 0.0003;  %.001 singes FST ruler
             ISI = .15;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)

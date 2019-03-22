@@ -9,7 +9,7 @@ s = daqSetup(Fs, 'opto');
 
 %% parameters
 stimulus = 'optotag';
-sweepDuration = 2; % in s
+sweepDuration = 4; % in s
 sweepDurationinSamples = Fs * sweepDuration;
 interSweepInterval = 0.5; % in s
 interSweep_samples = interSweepInterval * Fs;
@@ -44,13 +44,13 @@ switch protocol
         fullOpto = repmat([squareWaveY;zeros(interSweep_samples,1)],numSweeps,1);
     
     case 'pairedPulse'
-        sweepDuration = 2; % in s
+        sweepDuration = 4; % in s
         sweepDurationinSamples = Fs * sweepDuration;
         lightDur = 1; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
         
-        lags = [2,4,8,16, 32, 64, 100, 128, 256, 512]; % in ms
+        lags = [16, 32, 64, 100, 128, 256, 500, 1000, 2000]; % in ms
         permutedLags = lags(randperm(size(lags,2)));
         
         numLags = length(lags);
@@ -62,7 +62,7 @@ switch protocol
         s1.numSweeps = numSweeps;
         optos = zeros(sweepDurationinSamples,numSweeps);
         
-        startFirstPulse = sweepDurationinSamples/2;
+        startFirstPulse = sweepDurationinSamples/4;
         endFirstPulse = startFirstPulse + lightDur_samples;
         optos(startFirstPulse:endFirstPulse,:) = 1;
         
