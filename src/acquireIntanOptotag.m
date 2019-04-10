@@ -46,7 +46,7 @@ switch protocol
     case 'pairedPulse'
         sweepDuration = 4; % in s
         sweepDurationinSamples = Fs * sweepDuration;
-        lightDur = 1; % in ms
+        lightDur = 10; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
         
@@ -54,7 +54,7 @@ switch protocol
         permutedLags = lags(randperm(size(lags,2)));
         
         numLags = length(lags);
-        numRepetitions = 20;
+        numRepetitions = 10;
         allLags = repmat(permutedLags,1,numRepetitions);
         allLags_samples = allLags * Fs/1000;
         numSweeps = numLags * numRepetitions;

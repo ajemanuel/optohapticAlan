@@ -83,7 +83,7 @@ pos24 = 'port0/line31';
 
 %% Initiating DAQ and Assigning Channels
 
-s = daq.createSession('ni');
+s = daq.createSession('ni'); %% the data acquisition toolbox support package must be installed
 s.Rate = Fs;
 
 switch config
