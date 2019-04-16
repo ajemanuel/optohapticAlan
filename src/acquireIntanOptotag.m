@@ -9,22 +9,23 @@ s = daqSetup(Fs, 'opto');
 
 %% parameters
 stimulus = 'optotag';
-sweepDuration = 5; % in s
+sweepDuration = 4; % in s
 sweepDurationinSamples = Fs * sweepDuration;
-interSweepInterval = 2; % in s
+interSweepInterval = 0.5; % in s
 interSweep_samples = interSweepInterval * Fs;
-numSweeps = 60;
+numSweeps = 10;
 
 switch protocol
     case 'pulse'
-        lightDur = 1; % in ms
+        lightDur = 10; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
-        numFrequencies = 5;
-        optoFrequencies = [1, 2, 5, 10, 20];
+        
+        optoFrequencies = [2, 5, 10, 20, 40];
+        numFrequencies = length(optoFrequencies);
         squareWaveT = 0:1/Fs:(1/numFrequencies*sweepDuration) - 1/Fs;
 
-        for i = 1:length(optoFrequencies)
+        for i = 1:numFrequencies
             dutyCycle = lightDur_samples/(Fs/optoFrequencies(i))*100;
             if i == 1
                 squareWaveY = (square(2*pi*optoFrequencies(i)*squareWaveT,dutyCycle)+1)/2;
@@ -42,12 +43,55 @@ switch protocol
         fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
         fullOpto = repmat([squareWaveY;zeros(interSweep_samples,1)],numSweeps,1);
     
+    case 'pairedPulse'
+        sweepDuration = 4; % in s
+        sweepDurationinSamples = Fs * sweepDuration;
+        lightDur = 10; % in ms
+        lightDur_s = lightDur/1000; % convert to seconds
+        lightDur_samples = lightDur_s * Fs; % convert to samples
+        
+        lags = [16, 32, 64, 100, 128, 256, 500, 1000, 2000]; % in ms
+        permutedLags = lags(randperm(size(lags,2)));
+        
+        numLags = length(lags);
+        numRepetitions = 10;
+        allLags = repmat(permutedLags,1,numRepetitions);
+        allLags_samples = allLags * Fs/1000;
+        numSweeps = numLags * numRepetitions;
+        s1.allLags = allLags;
+        s1.numSweeps = numSweeps;
+        optos = zeros(sweepDurationinSamples,numSweeps);
+        
+        startFirstPulse = sweepDurationinSamples/4;
+        endFirstPulse = startFirstPulse + lightDur_samples;
+        optos(startFirstPulse:endFirstPulse,:) = 1;
+        
+        for i = 1:numSweeps
+            startSecondPulse = startFirstPulse + allLags_samples(i);
+            endSecondPulse = startSecondPulse + lightDur_samples;
+            optos(startSecondPulse:endSecondPulse,i) = 1;
+        end
+
+      
+        
+        
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1;
+        fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
+        for i = 1:numSweeps
+            if i == 1
+                fullOpto = [optos(:,i);zeros(interSweep_samples,1)];
+            else
+                fullOpto = [fullOpto; optos(:,i); zeros(interSweep_samples,1)];
+            end
+        end
+        
     case 'randomPulse'
         
         lightDur = 50; % in ms
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
-        meanFrequency = 0.5;
+        meanFrequency = 1;
         numStim = sweepDuration/meanFrequency;
         rng(20180615)
         starts = int32(rand(numStim,1) * sweepDuration * Fs);
@@ -76,7 +120,7 @@ switch protocol
         trigger(2:1:end-1) = 1;
         fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
-    end
+end
         
 s.queueOutputData(horzcat(fullTrigger, fullOpto));
 
