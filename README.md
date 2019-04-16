@@ -1,7 +1,5 @@
-
-
 # Optohaptic
-> Contains code for generating optogenetic and mechanical touch stimuli.
+Contains code for generating optogenetic and mechanical touch stimuli.
 
 
 
