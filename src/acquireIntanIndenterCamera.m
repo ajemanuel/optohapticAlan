@@ -268,16 +268,16 @@ switch protocol
     case 'forceSine'
         %% parameters
         stimulus = 'IndenterSine';
-        sweepDuration = 1; % in s
+        sweepDuration = 2; % in s
         sweepDurationinSamples = sweepDuration * Fs;
-        interSweepInterval = .5; % in s
-        numSweeps = 200;
+        interSweepInterval = 0.5; % in s
+        numSweeps = 500;
         len_off = 0;
-        len_on = 6; % so that the maximum len will be ~ 1 mm above platform
-        %forceRange = [1,40];
-        forceRange = [0,75];
-        %frequencies = [2, 5, 10, 20, 40, 50, 60, 80, 100, 120];
-        frequencies = [2];
+        len_on = 9; % so that the maximum len will be ~ 1 mm above platform
+        forceRange = [1,40];
+        %forceRange = [0,75];
+        frequencies = [2, 5, 10, 20, 40, 50, 60, 80, 100, 120];
+        %frequencies = [2];
         voltageConversion = 53.869; % mN/V calibrated 1/23/18
             
         
@@ -393,7 +393,73 @@ case 'forceSineRamp'
         s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
         
         [data, time] = s.startForeground();
+
+    case 'forceSineBump'
+        %% parameters
+        stimulus = 'IndenterSine';
+        sweepDuration = 3; % in s
+        sweepDurationinSamples = sweepDuration * Fs;
+        interSweepInterval = 0.5; % in s
+        numSweeps = 250;
+        len_off = 0;
+        len_on = 9; % so that the maximum len will be ~ 1 mm above platform
+        forceRange = [1,50];
+        frequencies = [2];
+        voltageConversion = 53.869; % mN/V calibrated 1/23/18
+            
         
+        %build stimuli
+        sineWaveT = 0:1/Fs:.25-1/Fs; % quarter second sine bump
+        sineWaveY = zeros(size(sineWaveT,2),numSweeps);
+        sineAmplitude = zeros(numSweeps,1);
+        sineFrequency = zeros(numSweeps,1);
+        for i = 1:numSweeps
+            
+            if i > 150 && mod(i, 10) == 0
+                sineAmplitude(i) = 75/voltageConversion; % 75 mN in V
+            else
+                sineAmplitude(i) = rand*((forceRange(2)-forceRange(1))/voltageConversion)+forceRange(1)/voltageConversion; % in V
+            end
+            sineFrequency(i) = frequencies(randi(size(frequencies),1)); % in Hz
+            sineWaveY(:,i) = (sin(2*pi*sineFrequency(i)*sineWaveT))*sineAmplitude(i);
+            
+        end
+        s1.sineAmplitude = sineAmplitude*voltageConversion; % in mN
+        s1.sineFrequency = sineFrequency;
+        % build camera trigger
+        cameraTrigger = zeros(sweepDurationinSamples,1);
+        maxCameraTriggers = sweepDurationinSamples/cameraTriggerSamples;
+        for j = 2:maxCameraTriggers-2
+            cameraTrigger(round(j * cameraTriggerSamples):1:round(j*cameraTriggerSamples)+20) = 1;
+        end        
+        
+        %% Build Stimuli
+        sweepDurationinSamples = Fs * sweepDuration;
+        interSweepSamples = interSweepInterval * Fs;
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1; % trigger determines length of intan recording, which will have buffer at beg and end
+                
+        blankHalfSecond = zeros(Fs*.5,1);
+        blankEnd = zeros(sweepDurationinSamples - size(blankHalfSecond,1) - 0.25 * Fs,1);
+        
+        length = ones(sweepDurationinSamples,1) * len_on;
+        fullForce = [];
+        for i=1:numSweeps
+            fullForce = [fullForce; blankHalfSecond; sineWaveY(:,i); blankEnd;zeros(interSweepSamples,1)];
+        end
+        fullCameraTrigger = repmat([cameraTrigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullLength = repmat([length; ones(interSweepSamples,1)*len_on],numSweeps,1);
+        %ramping length up and down for first and last half second in stimulus
+        fullLength(1:1e4) = len_off:(len_on-len_off)/1e4:len_on-1/1e4;
+        fullLength(end-1e4:end) = len_on:(len_off-len_on)/1e4:len_off-1/1e4;
+        
+                
+        %% Queue data
+        
+        s.queueOutputData(horzcat(fullTrigger, fullCameraTrigger, fullLength, fullForce))
+        
+        [data, time] = s.startForeground();    
 end
 
 

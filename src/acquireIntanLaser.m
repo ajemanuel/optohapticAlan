@@ -9,11 +9,11 @@ function acquireIntanLaser(protocol)
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
             edgeLength = 12000; % in microns      
-            offsetX = -25000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
-            offsetY = 4000; % in microns
-            numStim = 200000; 
+            offsetX = -26000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
+            offsetY = 0; % in microns
+            numStim = 8000; 
             dwellTime = 0.0003;  %.001 singes FST ruler
-            ISI = .005;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
+            ISI = .1;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
 
             rng(.08041961) % seed random number generator for reproducibility
             [x1,y1,lz1] = randSquareWithOffset(edgeLength, offsetX, offsetY, numStim, dwellTime, ISI, Fs);

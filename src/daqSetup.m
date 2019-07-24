@@ -119,13 +119,10 @@ switch config
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
         addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'indenterCamera'
-        fprintf('Adding analog input channels\n')
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
-        fprintf('Adding digital output channels\n')
         dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
         dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
-        fprintf('Adding analog output channels\n')
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
         addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'indenterOpto'
