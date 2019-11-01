@@ -5,7 +5,7 @@ Fs = 20000;
 s = daqSetup(Fs, 'indenterOpto');
 optoTriggerRate = 10; % in Hz
 optoTriggerSamples = Fs/optoTriggerRate;
-optoDuration = 1; % in ms
+optoDuration = 15; % in ms
 if nargin < 2
     optoOn = true;
 end
@@ -81,7 +81,7 @@ switch protocol
         sweepDuration = 20; % in s
         interSweepInterval = .25; % in s
         
-        numSweeps = 30;
+        numSweeps = 15;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning o stimulus
         len_on = 6; % so that the maximum len will be above platform
         stepIntensityMilliNewtons = 40; % in mN
@@ -285,11 +285,11 @@ switch protocol
         interSweepInterval = 0.5; % in s
         len = 8; % so that the maximum len will be ~ 1 mm above platform
         
-        lags = [-.45,-.25,-.2,-.15,-.1,-.05,-.025,-0.01,0,0.01, 0.025, 0.05, 0.1, 0.15, 0.2, 0.25, 0.45];
+        lags = [-.45,-.25,-.2,-.1,-.05,-0.025, -0.01, 0, 0.25, 0.45];
         numLags = size(lags,2);
         lagsPermuted = lags(randperm(numLags));
         numRepetitions = 20;
-        forceIntensity = 40; % mN
+        forceIntensity = 75; % mN
         numSweeps = numLags * numRepetitions; % currently 340
         
         s1.lagsPermuted = lagsPermuted;
@@ -307,6 +307,86 @@ switch protocol
             optoEnd = int32(lag+optoDuration/1000*Fs);
             opto(i,lag:optoEnd) = 1;
         end
+        
+        %% Build Stimuli
+        sweepDurationinSamples = Fs * sweepDuration;
+        interSweepSamples = interSweepInterval * Fs;
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1; % trigger determines length of intan recording, which will have buffer at beg and end
+                
+        onHalf = ones(sweepDurationinSamples*.5,1);
+        forceIntensity_V = forceIntensity / 53.869; % converting to Voltage
+        
+        
+        blankQuarter = zeros(sweepDurationinSamples*.25,1);
+        
+        length = ones(sweepDurationinSamples,1) * len;
+        force = [blankQuarter; onHalf*forceIntensity_V; blankQuarter];
+        for i = 1:numSweeps
+            if i == 1
+                fullOptoTrigger = [opto(i,:)'; zeros(interSweepSamples,1)];
+            else
+                fullOptoTrigger = [fullOptoTrigger; opto(i,:)'; zeros(interSweepSamples,1)];
+            end
+        end
+        fullTrigger = repmat([trigger; zeros(interSweepSamples,1)],numSweeps,1);
+        fullLength = repmat([length; ones(interSweepSamples,1)*len],numSweeps,1);
+        fullForce = repmat([force; zeros(interSweepSamples,1)],numSweeps,1);
+        % filtering force
+        boxcarWindow = 15; % in ms
+        boxcarWindow_samples = boxcarWindow/1000*Fs;
+        fullForce = movmean(fullForce,boxcarWindow_samples);
+        %ramping length up and down for first and last second in stimulus
+        fullLength(1:2e4) = 0:(len-0)/2e4:len-1/2e4;
+        fullLength(end-2e4:end) = len:(0-len)/2e4:0-1/2e4;
+                
+        %% Queue data
+        
+        s.queueOutputData(horzcat(fullTrigger, fullOptoTrigger, fullLength, fullForce))
+        
+        [data, time] = s.startForeground();
+    case 'varLagMultiDur'
+        %% parameters
+        stimulus = 'IndenterOpto';
+        sweepDuration = 2; % in s
+        sweepDurationinSamples = sweepDuration * Fs;
+        interSweepInterval = 0.5; % in s
+        len = 8; % so that the maximum len will be ~ 1 mm above platform
+        
+        numSweeps = 200;
+        
+        % will randomly draw from these options when generating stimulus
+        lags = [-0.5,0.5]; % location of light pulse relative to onset of step in s
+        durs = [0, 10, 1, 5]; % duration of LED pulse in ms
+        
+        numLags = size(lags,2);
+        numDurs = size(durs,2);
+        
+        lagsPermuted = zeros(numSweeps,1);
+        dursPermuted = zeros(numSweeps,1);
+        
+        forceIntensity = 75; % mN
+        
+        
+        s1.forceIntensity = forceIntensity;
+        s1.numSweeps = numSweeps;
+        
+        % build led trigger
+        opto = zeros(numSweeps,sweepDurationinSamples);
+        for i = 1:numSweeps
+            lag = lags(randi(numLags))* Fs + sweepDurationinSamples*(1/4);
+            dur = durs(randi(numDurs));
+            if lag == 0
+                lag = 1;
+            end
+            optoEnd = int32(lag+dur/1000*Fs);
+            opto(i,lag:optoEnd) = 1;
+            
+            lagsPermuted(i) = lag;
+            dursPermuted(i) = dur;
+        end
+        s1.dursPermuted = dursPermuted;
+        s1.lagsPermuted = lagsPermuted;
         
         %% Build Stimuli
         sweepDurationinSamples = Fs * sweepDuration;

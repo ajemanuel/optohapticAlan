@@ -11,9 +11,9 @@ s = daqSetup(Fs, 'opto');
 stimulus = 'optotag';
 sweepDuration = 10; % in s
 sweepDurationinSamples = Fs * sweepDuration;
-interSweepInterval = 5; % in s
+interSweepInterval = 10; % in s
 interSweep_samples = interSweepInterval * Fs;
-numSweeps = 5;
+numSweeps = 15;
 
 switch protocol
     case 'pulse'
@@ -21,7 +21,8 @@ switch protocol
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
         
-        optoFrequencies = [2, 4, 6, 8, 10];
+        optoFrequencies = [1, 1, 2, 5, 10];
+        %optoFrequencies = [1, 1, 1, 1, 1];
         numFrequencies = length(optoFrequencies);
         squareWaveT = 0:1/Fs:(1/numFrequencies*sweepDuration) - 1/Fs;
 
@@ -50,11 +51,11 @@ switch protocol
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
         
-        lags = [16, 32, 64, 100, 128, 256, 500, 1000, 2000]; % in ms
+        lags = [32, 64, 100, 128, 256, 500, 1000, 2000]; % in ms
         permutedLags = lags(randperm(size(lags,2)));
         
         numLags = length(lags);
-        numRepetitions = 10;
+        numRepetitions = 20;
         allLags = repmat(permutedLags,1,numRepetitions);
         allLags_samples = allLags * Fs/1000;
         numSweeps = numLags * numRepetitions;
@@ -108,7 +109,7 @@ switch protocol
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
         
     case 'sustained'
-        lightDur = 2; %s
+        lightDur = 5; %s
         lightDur_samples = lightDur*Fs; % convert to samples
         lightOnset = 1.5; %s
         lightOnset_samples = lightOnset * Fs;

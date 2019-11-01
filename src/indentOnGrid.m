@@ -4,13 +4,13 @@ function [  ] = indentOnGrid( )
 
 %% Set Parameters
 
-min_x = 7.5; % mm
-min_y = 7.5; % mm
-max_x = 10.5; % mm
-max_y = 10.5; % mm
-grid_spacing = 0.75; %mm
+min_x = 6.5; % mm
+min_y = 6.5; % mm
+max_x = 11.5; % mm
+max_y = 11.5; % mm
+grid_spacing = 1; %mm
 move_velocity = 20; %mm/s
-num_repetitions = 1; % # of times repeating entire grid
+num_repetitions = 2; % # of times repeating entire grid
 grid_x = repmat([min_x:grid_spacing:max_x],(max_y-min_y)/grid_spacing+1,1);
 
 grid_y = repmat([min_y:grid_spacing:max_y]',1,(max_x-min_x)/grid_spacing+1);
@@ -154,6 +154,7 @@ for gridLoc = 1:size(grid_positions_rand)
     fprintf('Stimulating site %d of %d\n',gridLoc, size(grid_positions_rand))
     fprintf('X: %.2f, Y: %.2f\n',grid_positions_rand(gridLoc,1),grid_positions_rand(gridLoc,2))
     acquireIntanIndenterCamera('forceTwoSteps')
+    acquireIntanOptotag('pulse')
     
 end
 end

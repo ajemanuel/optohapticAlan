@@ -8,10 +8,10 @@ function acquireIntanLaser(protocol)
     switch protocol
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
-            edgeLength = 12000; % in microns      
-            offsetX = -26000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
+            edgeLength = 15000; % in microns      
+            offsetX = -23000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
             offsetY = 0; % in microns
-            numStim = 8000; 
+            numStim = 5000; 
             dwellTime = 0.0003;  %.001 singes FST ruler
             ISI = .1;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
 
@@ -52,8 +52,8 @@ function acquireIntanLaser(protocol)
             s1.edgeLength = edgeLength;
         case 'pulseSinglePoint'
             stimulus = 'singlePoint';
-            offsetX = -26500;
-            offsetY = 0;
+            offsetX = -21000;
+            offsetY = -1000;
             stimFrequency = 20; % in Hz
             dwellTime = 0.0003; % in s
             duration = 2; % in s
@@ -62,6 +62,7 @@ function acquireIntanLaser(protocol)
             
             % construct stimulus
             squareWaveT = 0:1/Fs:duration;
+            squareWaveT = squareWaveT(1:end-1);
             duty = dwellTime/(1/stimFrequency) * 100;
             squareWaveY = (square(2*pi*stimFrequency*squareWaveT,duty)+1)/2;
             squareWaveY = squareWaveY';
