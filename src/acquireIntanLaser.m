@@ -8,12 +8,12 @@ function acquireIntanLaser(protocol)
     switch protocol
         case 'randSquareWithOffset'
             stimulus = 'randSquareWithOffset';
-            edgeLength = 15000; % in microns      
+            edgeLength = 8000; % in microns      
             offsetX = -23000; % in microns  [-26000, , -24000, 26000 ]  empirical range [-x, +x, -y, +y]
             offsetY = 0; % in microns
             numStim = 5000; 
             dwellTime = 0.0003;  %.001 singes FST ruler
-            ISI = .1;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
+            ISI = .15;  %empirical min is .001 seconds (thorlabs mirrors confined to 1cm^2)
 
             rng(.08041961) % seed random number generator for reproducibility
             [x1,y1,lz1] = randSquareWithOffset(edgeLength, offsetX, offsetY, numStim, dwellTime, ISI, Fs);
@@ -52,8 +52,8 @@ function acquireIntanLaser(protocol)
             s1.edgeLength = edgeLength;
         case 'pulseSinglePoint'
             stimulus = 'singlePoint';
-            offsetX = -21000;
-            offsetY = -1000;
+            offsetX = -25500;
+            offsetY = -2500;
             stimFrequency = 20; % in Hz
             dwellTime = 0.0003; % in s
             duration = 2; % in s

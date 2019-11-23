@@ -112,6 +112,12 @@ switch config
         dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
         addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+    case 'camera'
+        ch = addAnalogInputChannel(s,Device,[AItrigger],'Voltage');
+        dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
+        dch(1).Name = 'trigger';
+        dch(2).Name = 'CameraTrigger';
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'indenter'
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
         dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
