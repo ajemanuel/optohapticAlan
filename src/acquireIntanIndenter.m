@@ -52,10 +52,10 @@ switch protocol
         stimulus = 'IndenterForceSteps';
         sweepDuration = 10; % in s
         interSweepInterval = 1; % in s
-        numSweeps = 1;
+        numSweeps = 2;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 8; % so that the maximum len will be at least 1 mm above platform
-        intensities = [0.1, 0.2, 0.4, 0.8];
+        intensities = [0.1, 0.2, 0.8, 1.5];
         stepFrequency = 0.5;
         squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2;

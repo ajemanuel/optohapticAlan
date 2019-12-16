@@ -498,7 +498,7 @@ s1.trigger = fullTrigger;
 s1.cameraTrigger = fullOptoTrigger;
 s1.optoOn = optoOn;
 s1.optoDuration = optoDuration;
-path = 'E:\DATA\';
+path = 'E:\DATA\MWS\';
 fullpath = strcat(path, stimulus, '_', datestr(now, 'yymmdd HHMM SS'), '.mat');
 fprintf('saved as %s \n', fullpath)
 save(fullpath, '-struct', 's1');

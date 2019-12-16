@@ -1,4 +1,4 @@
-function acquireIntanIndenterOpto_MWS_v2(protocol)
+function acquireIntanIndenterOpto_MWS_v3(protocol)
 
 % Init DAQ
 Fs = 20000;
@@ -14,7 +14,7 @@ switch protocol
         sweepDurationinSamples = Fs * sweepDuration;
         
         interSweepInterval = 2.5; % in s
-        numSweeps = 60;
+        numSweeps = 40;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 8; % so that the maximum len will be at least 1 mm above platform
         %intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 2];

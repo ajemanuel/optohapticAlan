@@ -13,7 +13,7 @@ sweepDuration = 10; % in s
 sweepDurationinSamples = Fs * sweepDuration;
 interSweepInterval = 1; % in s
 interSweep_samples = interSweepInterval * Fs;
-numSweeps = 1;
+numSweeps = 10;
 
 switch protocol
     case 'pulse'
@@ -21,7 +21,7 @@ switch protocol
         lightDur_s = lightDur/1000; % convert to seconds
         lightDur_samples = lightDur_s * Fs; % convert to samples
         
-        optoFrequencies = [1, 1, 2, 5, 10];
+        optoFrequencies = [1, 2, 5, 10, 20];
         %optoFrequencies = [1, 1, 1, 1, 1];
         numFrequencies = length(optoFrequencies);
         squareWaveT = 0:1/Fs:(1/numFrequencies*sweepDuration) - 1/Fs;
@@ -135,7 +135,7 @@ s1.time = time;
 s1.opto = fullOpto;
 s1.trigger = fullTrigger;
 s1.lightDur = lightDur;
-path = 'E:\DATA\';
+path = 'E:\DATA\MWS\';
 fullpath = strcat(path, stimulus, '_', datestr(now, 'yymmdd HHMM SS'), '.mat');
 fprintf('saved as %s \n', fullpath)
 save(fullpath, '-struct', 's1');
