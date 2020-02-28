@@ -271,13 +271,13 @@ switch protocol
         sweepDuration = 2; % in s
         sweepDurationinSamples = sweepDuration * Fs;
         interSweepInterval = 0.5; % in s
-        numSweeps = 500;
+        numSweeps = 200;
         len_off = 0;
         len_on = 9; % so that the maximum len will be ~ 1 mm above platform
         forceRange = [1,40];
         %forceRange = [0,75];
-        frequencies = [2, 5, 10, 20, 40, 50, 60, 80, 100, 120];
-        %frequencies = [2];
+        %frequencies = [2, 5, 10, 20, 40, 50, 60, 80, 100, 120];
+        frequencies = [10,60,100];
         voltageConversion = 53.869; % mN/V calibrated 1/23/18
             
         

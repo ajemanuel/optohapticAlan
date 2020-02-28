@@ -11,7 +11,7 @@ s = daqSetup(Fs, 'opto');
 stimulus = 'optotag';
 sweepDuration = 10; % in s
 sweepDurationinSamples = Fs * sweepDuration;
-interSweepInterval = 1; % in s
+interSweepInterval = 3; % in s
 interSweep_samples = interSweepInterval * Fs;
 numSweeps = 1;
 
@@ -109,7 +109,7 @@ switch protocol
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
         
     case 'sustained'
-        lightDur = 5; %s
+        lightDur = 2; %s
         lightDur_samples = lightDur*Fs; % convert to samples
         lightOnset = 1.5; %s
         lightOnset_samples = lightOnset * Fs;
