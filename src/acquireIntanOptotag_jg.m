@@ -1,11 +1,11 @@
-function acquireIntanOptotag(protocol)
+function acquireIntanOptotag_jg(protocol, peakVolt)
 %Brief protocol that controls optotagging LED
 %   run at beginning and end of experiment.
 
 
 %% Init DAQ
 Fs = 20000;
-s = daqSetup(Fs, 'opto');
+s = daqSetup_jg(Fs, 'optoMod');
 
 %% parameters
 stimulus = 'optotag';
@@ -114,29 +114,31 @@ switch protocol
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
         
     case 'sustained'
-        sweepDuration = 6; % in s
+        peakVolt = 5;
+        sweepDuration = 4; % in s
         sweepDurationinSamples = Fs * sweepDuration;
         
         lightDur = 2; %s
         lightDur_samples = lightDur*Fs; % convert to samples
-        lightOnset = 2; %s
+        lightOnset = 1; %s
         lightOnset_samples = lightOnset * Fs;
         lightOffset_samples = lightOnset_samples + lightDur_samples;
         
         opto = zeros(sweepDurationinSamples,1);
         opto(lightOnset_samples:lightOffset_samples) = 1;
+        opto = opto .* peakVolt;
         trigger = zeros(sweepDurationinSamples,1);
         trigger(2:1:end-1) = 1;
         fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
         
     case 'sustained40Hz'
-        sweepDuration = 6; % in s
+        sweepDuration = 4; % 6 in s
         sweepDurationinSamples = Fs * sweepDuration;
         
-        lightDur = 2; %s
+        lightDur = 2; %2 s
         lightDur_samples = lightDur*Fs; % convert to samples
-        lightOnset = 2; %s
+        lightOnset = 1; %s
         lightOnset_samples = lightOnset * Fs;
         lightOffset_samples = lightOnset_samples + lightDur_samples;
         
@@ -147,17 +149,18 @@ switch protocol
         
         opto = zeros(sweepDurationinSamples,1);
         opto(lightOnset_samples:lightOffset_samples-1) = squareWave(:);
+        opto = opto .* peakVolt;
         trigger = zeros(sweepDurationinSamples,1);
         trigger(2:1:end-1) = 1;
         fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
     
     case 'rampedSustained'
-        sweepDuration = 6.5; % in s
+        sweepDuration = 4.5; % in s
         sweepDurationinSamples = Fs * sweepDuration;
         pwmPeriod_samples = 100; % pulse period, higher = more gradual
         
-        rampOnset = 2; %s
+        rampOnset = 1; %s
         rampOnset_samples = rampOnset * Fs;
         rampDur = 0.5; %s
         rampDur_samples = rampDur * Fs;
@@ -175,7 +178,45 @@ switch protocol
         fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
         fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);
         
-
+    case 'rampedSustained40Hz'
+        optoFreq = 40;
+        dutyCycle = 50;
+        LEDOffset = 0.05;
+        
+        sweepDuration = 6.5; % 6.5 in s
+        sweepDurationinSamples = Fs * sweepDuration;
+        
+        rampOnset = 2; %s
+        rampOnset_samples = rampOnset * Fs;
+        rampDur = 0.5; %s
+        rampDur_samples = rampDur * Fs;
+        steadyOnset_samples = rampOnset_samples + rampDur_samples;
+        steadyDur = 2; %2 s
+        steadyDur_samples = steadyDur * Fs; % convert to samples
+        lightOffset_samples = steadyOnset_samples + steadyDur_samples;
+        lightDur = rampDur + steadyDur;
+        lightDur_samples = lightDur * Fs;
+        
+        
+        nCycles = optoFreq * lightDur;
+        t = 0:1/Fs:lightDur - 1/Fs;
+        squareWave = (square(2*pi*optoFreq*t, dutyCycle)+1)/2;
+        % Ramping did not seem linear so I made a two piece linear ramp to
+        % make it more gradual
+        envelope = cat(2, linspace(0, 0.25, rampDur_samples/2), linspace(0.25, 1, rampDur_samples/2), ones(1, steadyDur_samples));
+        squareWave = squareWave .* envelope;
+        squareWave = LEDOffset + squareWave .* (peakVolt-LEDOffset);
+%         plot(t, squareWave);
+        opto = zeros(sweepDurationinSamples,1);
+        opto(rampOnset_samples:lightOffset_samples-1) = squareWave(:);
+        
+        trigger = zeros(sweepDurationinSamples,1);
+        trigger(2:1:end-1) = 1;
+        fullTrigger = repmat([trigger;zeros(interSweep_samples,1)],numSweeps,1);
+        fullOpto = repmat([opto;zeros(interSweep_samples,1)],numSweeps,1);                
+    otherwise
+        error('Protocol not found.')
+            
 end
 
 s.queueOutputData(horzcat(fullTrigger, fullOpto));

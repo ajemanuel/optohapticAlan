@@ -73,12 +73,15 @@ switch protocol
         stimulus = 'IndenterForceSteps';
         sweepDuration = 20; % in s
         sweepDurationinSamples = Fs * sweepDuration;
+        voltageConversion = 53.869; % mN/V calibrated 1/23/18
         
         interSweepInterval = .5; % in s
         numSweeps = 30;
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 9; % so that the maximum len will be at least 1 mm above platform
-        intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
+        voltageConversion = 53.869; % mN/V calibrated 1/23/18
+        intensities_mn = [1, 2, 5, 10, 20, 40, 50, 75, 1, 2, 5, 10, 20, 40, 50, 75];
+        intensities = intensities_mn ./ voltageConversion;%[0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
         %intensities = [0.025, 0.05, 0.1, 0.2, 0.4, 0.8, 1.0, 1.5];
         stepFrequency = 1;
         squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
@@ -145,8 +148,8 @@ switch protocol
         len_off = 0; % below platform for moving stage, best to be 0 so no sudden oscillation at beginning of stimulus
         len_on = 10; % so that the maximum len will be at least 1 mm above platform
         intensities = zeros(16,1);
-        intensities(1:2:end) = .04; % 2 mN
-        intensities(2:2:end) = .2; % 10 mN
+        intensities(1:2:end) = .2; % 10 mN
+        intensities(2:2:end) = .8; % 40 mN
         stepFrequency = 1;
         squareWaveT = 0:1/Fs:(.8*sweepDuration)-1/Fs;
         squareWaveY = (square(2*pi*stepFrequency*squareWaveT,50)+1)/2;

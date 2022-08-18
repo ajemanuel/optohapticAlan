@@ -38,6 +38,18 @@ DOtrigger = 'port0/line0';
 DOcameraTrigger = 'port0/line6'; % connected to PFI1
 % trigger for TTL laser
 DOlaser = 'port0/line1';
+% trigger for side and ventral view cameras
+DOsideCamera = 'port0/line4'; % this is on DEV3
+DOventralCamera = 'port0/line3'; % this is on DEV3
+% monitor side and ventral view cameras
+DOsideCamera_mon = 'port0/line4'; % this is on DEV3
+DOventralCamera_mon = 'port0/line2'; % this is on DEV3
+
+
+% behavior readouts
+
+licks = 'port0/line7';
+Tone = 'port0/line5';
 
 % PI stage outputs (nidaq --> C-867 controller)
 DOphysikInstrumente1 = 'port0/line2'; %black 
@@ -47,6 +59,7 @@ DOphysikInstrumente4 = 'port0/line4'; %yellow
 % PI stage inputs (C-867 --> nidaq)
 DIphysikInstrumente3 = 'port0/line5'; %green
 %DIphysikInstrumente4 = 'port0/line6'; %purple
+
 
 %% Channels for printer head stimulator (on oldDevice)
 
@@ -118,6 +131,18 @@ switch config
         dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
         addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+    case 'dualCamera'
+        ch = addAnalogInputChannel(s,OldDevice,[AItrigger],'Voltage');
+        dch = addDigitalChannel(s,OldDevice,{DOtrigger, DOventralCamera, DOsideCamera},'OutputOnly');
+        dch(1).Name = 'trigger';
+        dch(2).Name = 'ventralCamera';
+        dch(3).Name = 'sideCamera';
+        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
+    case 'recordDualCamera'
+        dch = addDigitalChannel(s,OldDevice,{DOventralCamera_mon, DOsideCamera_mon},'InputOnly');
+        dch(1).Name = 'ventralCamera';
+        dch(2).Name = 'sideCamera';
+        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
     case 'indenter'
         ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
         dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
@@ -136,6 +161,14 @@ switch config
         dch = addDigitalChannel(s,Device,{DOtrigger, DOopto},'OutputOnly');
         dch(1).Name = 'trigger';
         dch(2).Name = 'opto';
+        addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
+        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+    case 'behaviorIndenter'
+        ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        dch = addDigitalChannel(s,Device,[DOtrigger,Tone],'OutputOnly');
+        dch_i = addDigitalChannel(s,Device,licks,'InputOnly');
+        dch(1).Name = 'trigger';
+        dch(2).Name = 'tone';
         addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
         addClockConnection(s,'External','Dev2/PFI0','ScanClock');
     case 'printHead'

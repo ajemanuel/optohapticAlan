@@ -50,8 +50,8 @@ switch protocol
         fullStim = repmat([squareWaveY;zeros(interSweep_samples,numPositions)],num_sweeps,1);
     
     case 'directional'
-        num_sweeps = 30;
-        speed = 64; % in mm/s
+        num_sweeps = 10;
+        speed = 16; % in mm/s
         fprintf('speed %i mm/s\n',speed)
         time_stim = 4/speed; % the length of the pin array is 4mm (width is ~1mm)
         time_isi = 3; % in s

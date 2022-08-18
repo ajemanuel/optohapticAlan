@@ -3,7 +3,7 @@ function acquireIntanCamera(durationInSeconds)
 % Init DAQ
 Fs = 20000;
 s = daqSetup(Fs, 'camera');
-cameraTriggerRate = 20;
+cameraTriggerRate = 200;
 
 
 cameraTriggerSamples = Fs/cameraTriggerRate;
