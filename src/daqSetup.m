@@ -1,4 +1,4 @@
-function [ s, ch, dch ] = daqSetup( Fs , config)
+function [ d, ch, dch ] = daqSetup( Fs , config)
 % This function sets up the daq for signal generation and acquisition, and
 % should be called by each of the stimulus files. Fs is the sampling rate,
 % and config is channel configuration. Possible values for config include
@@ -7,14 +7,14 @@ function [ s, ch, dch ] = daqSetup( Fs , config)
 
 %% DAQ and Channel Identities for Current Setup (20170629)
 
-Device = 'Dev2';
+Device = 'Dev1';
 
 % analog outputs for Aurora stimulator
 AOlength = 0;
 AOforce = 1;
 
 
-OldDevice = 'Dev3'; % this controls the device with the scan mirrors/laser
+USBDevice = 'Dev2'; % this controls the device with the scan mirrors/laser
 % analog outputs for scan mirrors
 AOxScan = 2;
 AOyScan = 3;
@@ -96,93 +96,93 @@ pos24 = 'port0/line31';
 
 %% Initiating DAQ and Assigning Channels
 
-s = daq.createSession('ni'); %% the data acquisition toolbox support package must be installed
-s.Rate = Fs;
+d = daq('ni'); %% the data acquisition toolbox support package must be installed
+d.Rate = Fs;
 
 switch config
     case 'brush'
-        ch = addAnalogInputChannel(s,Device,[AItrigger, AIbrush],'Voltage');
-        dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
+        ch = addinput(d,Device,[AItrigger, AIbrush],'Voltage');
+        dch = addinput(d,Device,DOtrigger,'Digital');
         dch.Name = 'trigger';
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case {'opto', 'optotag'}
-        ch = addAnalogInputChannel(s,Device,AItrigger,'Voltage');
-        dch = addDigitalChannel(s,Device,{DOtrigger, DOopto},'OutputOnly');
+        ch = addinput(d,Device,AItrigger,'Voltage');
+        dch = addinput(d,Device,{DOtrigger, DOopto},'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'opto';
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case {'laser'}
-        addAnalogOutputChannel(s,OldDevice,[AOxScan, AOyScan],'Voltage');
+        addoutput(d,USBDevice,[AOxScan, AOyScan],'Voltage');
         %ch = addAnalogInputChannel(s,OldDevice,[AItrigger],'Voltage'); %
         %not currently monitoring
-        dch = addDigitalChannel(s,OldDevice,{DOtrigger, DOlaser},'OutputOnly');
+        dch = addinput(d,USBDevice,{DOtrigger, DOlaser},'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'Laser';
-        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
+        addclock(d,'ScanClock','External','Dev2/PFI0');
     case 'brushCamera'
-        ch = addAnalogInputChannel(s,Device,[AItrigger, AIbrush],'Voltage');
-        dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
+        ch = addinput(d,Device,[AItrigger, AIbrush],'Voltage');
+        dch = addoutput(d,Device,{DOtrigger, DOcameraTrigger},'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case 'camera'
-        ch = addAnalogInputChannel(s,Device,[AItrigger],'Voltage');
-        dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
+        ch = addinput(d,Device,[AItrigger],'Voltage');
+        dch = addoutput(d,Device,{DOtrigger, DOcameraTrigger},'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case 'dualCamera'
-        ch = addAnalogInputChannel(s,OldDevice,[AItrigger],'Voltage');
-        dch = addDigitalChannel(s,OldDevice,{DOtrigger, DOventralCamera, DOsideCamera},'OutputOnly');
+        ch = addinput(d,USBDevice,[AItrigger],'Voltage');
+        dch = addoutput(d,USBDevice,{DOtrigger, DOventralCamera, DOsideCamera},'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'ventralCamera';
         dch(3).Name = 'sideCamera';
-        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
+        addclock(d,'ScanClock','External','Dev2/PFI0');
     case 'recordDualCamera'
-        dch = addDigitalChannel(s,OldDevice,{DOventralCamera_mon, DOsideCamera_mon},'InputOnly');
+        dch = addinput(d,USBDevice,{DOventralCamera_mon, DOsideCamera_mon},'Digital');
         dch(1).Name = 'ventralCamera';
         dch(2).Name = 'sideCamera';
-        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
+        addclock(d,'ScanClock','External','Dev2/PFI0');
     case 'indenter'
-        ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
-        dch = addDigitalChannel(s,Device,DOtrigger,'OutputOnly');
+        ch = addinput(d,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        dch = addoutput(d,Device,DOtrigger,'Digital');
         dch.Name = 'trigger';
-        addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addoutput(d,Device,[AOlength, AOforce],'Voltage');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case 'indenterCamera'
-        ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
-        dch = addDigitalChannel(s,Device,{DOtrigger, DOcameraTrigger},'OutputOnly');
+        ch = addinput(d,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        dch = addoutput(d,Device,{DOtrigger, DOcameraTrigger},'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'CameraTrigger';
-        addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addoutput(d,Device,[AOlength, AOforce],'Voltage');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case 'indenterOpto'
-        ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
-        dch = addDigitalChannel(s,Device,{DOtrigger, DOopto},'OutputOnly');
+        ch = addinput(d,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        dch = addoutput(d,Device,{DOtrigger, DOopto},'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'opto';
-        addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addoutput(d,Device,[AOlength, AOforce],'Voltage');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case 'behaviorIndenter'
-        ch = addAnalogInputChannel(s,Device,[AItrigger, AIlength, AIforce],'Voltage');
-        dch = addDigitalChannel(s,Device,[DOtrigger,Tone],'OutputOnly');
-        dch_i = addDigitalChannel(s,Device,licks,'InputOnly');
+        ch = addinput(d,Device,[AItrigger, AIlength, AIforce],'Voltage');
+        dch = addoutput(d,Device,[DOtrigger,Tone],'Digital');
+        dch_i = addinput(d,Device,licks,'Digital');
         dch(1).Name = 'trigger';
         dch(2).Name = 'tone';
-        addAnalogOutputChannel(s,Device,[AOlength, AOforce],'Voltage');
-        addClockConnection(s,'External','Dev2/PFI0','ScanClock');
+        addoutput(d,Device,[AOlength, AOforce],'Voltage');
+        addclock(d,'ScanClock','External','Dev1/PFI0');
     case 'printHead'
         
-        ch = addAnalogInputChannel(s,OldDevice,[AItrigger],'Voltage'); %
-        dch = addDigitalChannel(s,OldDevice,{DOtrigger,...
+        ch = addinput(d,USBDevice,AItrigger,'Voltage'); %
+        dch = addoutput(d,USBDevice,{DOtrigger,...
                                 pos1, pos2, pos3, pos4,...
                                 pos5, pos6, pos7, pos8,...
                                 pos9, pos10, pos11, pos12,...
                                 pos13, pos14,pos15, pos16,...
                                 pos17, pos18, pos19, pos20,...
                                 pos21, pos22, pos23, pos24},...
-                            'OutputOnly');
-        addClockConnection(s,'External','Dev3/PFI0','ScanClock');
+                            'Digital');
+        addclock(d,'ScanClock','External','Dev2/PFI0');
         
     otherwise
         error('config not correct')

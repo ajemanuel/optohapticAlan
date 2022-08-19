@@ -2,7 +2,7 @@ function acquireIntanDualCamera(durationInSeconds)
 
 % Init DAQ
 Fs = 20000;
-s = daqSetup(Fs, 'dualCamera');
+d = daqSetup(Fs, 'dualCamera');
 ventralTriggerRate = 200;
 sideCameraRate = 200;
 
@@ -34,20 +34,21 @@ end
 % Queue data
 fprintf('expect %i frames on ventral camera\n',sum(ventralcameratrigger(2:end) - ventralcameratrigger(1:end-1) > 0))
 fprintf('expect %i frames on side camera\n',sum(sidecameratrigger(2:end) - sidecameratrigger(1:end-1) > 0))
-s.queueOutputData(horzcat(trigger, ventralcameratrigger, sidecameratrigger))
-pause(1);
-% Output stimulus
-[data, time] = s.startForeground();
+% d.queueOutputData(horzcat(trigger, ventralcameratrigger, sidecameratrigger))
+% 
+% pause(1);
+% % Output stimulus
+% [data, time] = d.startForeground();
 
-
+inData = readwrite(d,horzcat(trigger, ventralcameratrigger, sidecameratrigger));
 
 % Clean up and save configuration
-s.release()
+d.release()
 
 % Save the fields of a structure as individual variables:
 s1.stimulus = stimulus;
 s1.Fs = Fs;
-s1.data = data;
+s1.data = inData;
 s1.time = time;
 s1.trigger = trigger;
 s1.ventralcameratrigger = ventralcameratrigger;
